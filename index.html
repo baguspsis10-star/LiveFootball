@@ -1,774 +1,582 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="h-full bg-slate-950 text-slate-100">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BolaStream - Live Football Streaming</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        body {
-            background-image: url('https://iili.io/CceoU6Q.md.jpg');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
-            color: #ffffff;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
-
-        /* Header / Logo */
-        header {
-            background-color: rgba(30, 41, 59, 0.9);
-            padding: 20px;
-            text-align: center;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(5px);
-        }
-
-        header h1 {
-            font-size: 1.8rem;
-            color: #38bdf8;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            cursor: pointer;
-            display: inline-block;
-        }
-
-        header h1 span {
-            color: #ffffff;
-        }
-
-        .main-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 30px 20px;
-            width: 100%;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        /* Fitur Pencarian */
-        .search-container {
-            max-width: 500px;
-            width: 100%;
-            margin: 0 auto 30px auto;
-            padding: 0 10px;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 14px 20px;
-            font-size: 1rem;
-            background-color: rgba(30, 41, 59, 0.9);
-            border: 2px solid #334155;
-            border-radius: 30px;
-            color: #ffffff;
-            outline: none;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
-            backdrop-filter: blur(5px);
-        }
-
-        .search-input:focus {
-            border-color: #38bdf8;
-            box-shadow: 0 0 15px rgba(56, 189, 248, 0.3);
-        }
-
-        .search-input::placeholder {
-            color: #64748b;
-        }
-
-        /* Halaman Utama / Menu Pilihan */
-        #home-view {
-            display: block;
-            animation: fadeIn 0.4s ease-in-out;
-        }
-
-        .section-title {
-            text-align: center;
-            margin-bottom: 25px;
-            font-size: 1.4rem;
-            text-transform: uppercase;
-            color: #cbd5e1;
-            letter-spacing: 1px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.6);
-        }
-
-        /* Live Clock Widget */
-        .clock-widget {
-            text-align: center;
-            background: rgba(30, 41, 59, 0.85);
-            border: 1px solid #334155;
-            padding: 10px 20px;
-            border-radius: 12px;
-            max-width: fit-content;
-            margin: 0 auto 25px auto;
-            font-size: 1rem;
-            color: #e2e8f0;
-            backdrop-filter: blur(5px);
-            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
-        }
-        .clock-widget span {
-            color: #38bdf8;
-            font-weight: bold;
-        }
-
-        .menu-grid {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            flex-wrap: wrap;
-        }
-
-        .menu-card {
-            flex: 1;
-            max-width: 380px;
-            min-width: 280px;
-            height: 180px;
-            position: relative;
-            border-radius: 16px;
-            overflow: hidden;
-            cursor: pointer;
-            border: 3px solid #334155;
-            transition: all 0.3s ease;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
-        }
-
-        .menu-card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-size: cover;
-            background-position: center;
-            transition: transform 0.5s ease;
-            z-index: 1;
-        }
-
-        /* Gambar Latar Menu */
-        .menu-card.wc-bg::before { background-image: url('https://cdn.phototourl.com/free/2026-07-06-6d440d2e-7091-45b7-8b37-40c000167a77.jpg'); }
-        .menu-card.pl-bg::before { background-image: url('https://cdn.phototourl.com/free/2026-07-06-f7466900-aadd-4872-abfc-2dc2349634f7.jpg'); }
-        .menu-card.sa-bg::before { background-image: url('https://cdn.phototourl.com/free/2026-07-06-781d87b7-7940-400b-9bec-773ab2823db0.jpg'); }
-        .menu-card.bl-bg::before { background-image: url('https://cdn.phototourl.com/free/2026-07-06-407fb065-4126-4660-87ca-8db819160341.jpg'); }
-        .menu-card.ll-bg::before { background-image: url('https://cdn.phototourl.com/free/2026-07-06-2f7b45e0-290c-4838-8f2c-726fb7161dbd.jpg'); }
-        .menu-card.ucl-bg::before { background-image: url('https://cdn.phototourl.com/free/2026-07-06-b34494f4-26ad-4478-8b24-8170ea8b1b7a.jpg'); }
-        .menu-card.uel-bg::before { background-image: url('https://cdn.phototourl.com/free/2026-07-06-a460cdee-af1d-4efe-bca1-3ded7298c55a.jpg'); }
-        .menu-card.uclf-bg::before { background-image: url('https://cdn.phototourl.com/free/2026-07-06-9103dbb1-0c84-4375-8071-74f03b41242e.jpg'); }
-
-        .menu-overlay {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(to top, rgba(15, 23, 42, 0.95) 15%, rgba(15, 23, 42, 0.4) 100%);
-            z-index: 2;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-            padding: 20px;
-        }
-
-        .menu-card:hover::before {
-            transform: scale(1.05);
-        }
-
-        .menu-card:hover {
-            border-color: #38bdf8;
-            transform: translateY(-5px);
-            box-shadow: 0 15px 25px -5px rgba(56, 189, 248, 0.5);
-        }
-
-        .menu-title {
-            font-size: 1.5rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            color: #ffffff;
-        }
-
-        .menu-subtitle {
-            font-size: 0.85rem;
-            color: #38bdf8;
-            font-weight: 600;
-            text-transform: uppercase;
-            margin-top: 4px;
-        }
-
-        /* Pesan tidak ditemukan */
-        #no-results {
-            display: none;
-            text-align: center;
-            color: #94a3b8;
-            font-size: 1.1rem;
-            margin-top: 30px;
-            background: rgba(15, 23, 42, 0.8);
-            padding: 15px;
-            border-radius: 8px;
-        }
-
-        /* Halaman Kompetisi */
-        .competition-view {
-            display: none;
-            animation: fadeIn 0.4s ease-in-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.98); }
-            to { opacity: 1; transform: scale(1); }
-        }
-
-        /* Tombol Kembali */
-        .btn-back {
-            display: inline-flex;
-            align-items: center;
-            background-color: rgba(30, 41, 59, 0.9);
-            color: #38bdf8;
-            border: 2px solid #334155;
-            padding: 10px 20px;
-            font-size: 0.95rem;
-            font-weight: bold;
-            border-radius: 8px;
-            cursor: pointer;
-            margin-bottom: 25px;
-            text-transform: uppercase;
-            transition: all 0.2s ease;
-            width: fit-content;
-            backdrop-filter: blur(5px);
-        }
-
-        .btn-back:hover {
-            background-color: #334155;
-            color: #ffffff;
-            border-color: #38bdf8;
-        }
-
-        /* Grid Matches */
-        .match-grid {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 30px;
-        }
-
-        .card {
-            background-color: rgba(30, 41, 59, 0.95);
-            border-radius: 16px;
-            overflow: hidden;
-            max-width: 400px;
-            width: 100%;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(5px);
-            border: 1px solid rgba(255,255,255,0.05);
-        }
-
-        .thumbnail-container {
-            width: 100%;
-            position: relative;
-            padding-top: 56.25%;
-            background-color: #000;
-        }
-
-        .thumbnail {
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            object-fit: cover;
-        }
-
-        .card-content {
-            padding: 25px;
-            text-align: center;
-        }
-
-        .match-title { font-size: 1.5rem; font-weight: 800; margin-bottom: 8px; }
-        .match-time {
-            font-size: 1rem; color: #38bdf8; font-weight: 600; margin-bottom: 15px;
-            background-color: rgba(56, 189, 248, 0.1); display: inline-block; padding: 4px 12px; border-radius: 6px;
-        }
-        
-        /* STYLE INDIKATOR STATUS */
-        .match-status {
-            display: inline-block; padding: 5px 14px;
-            border-radius: 20px; font-size: 0.85rem; font-weight: bold; text-transform: uppercase;
-            margin-bottom: 15px; transition: all 0.3s ease;
-        }
-        .status-live {
-            background-color: #ef4444; color: white;
-            animation: blink 1.5s infinite;
-        }
-        .status-upcoming {
-            background-color: #475569; color: #cbd5e1;
-        }
-        .status-ended {
-            background-color: #1e293b; color: #64748b; border: 1px solid #334155;
-        }
-
-        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.6; } 100% { opacity: 1; } }
-
-        .btn-group {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            width: 100%;
-        }
-
-        .btn-watch {
-            display: inline-flex; 
-            align-items: center;
-            justify-content: center;
-            width: 100%; 
-            background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%);
-            color: white; 
-            text-decoration: none; 
-            padding: 14px; 
-            border-radius: 8px; 
-            font-size: 1.1rem;
-            font-weight: bold; 
-            text-transform: uppercase; 
-            letter-spacing: 0.5px;
-            border: none;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        .btn-watch:hover { background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); }
-
-        /* SAFELINK TIMING STATES */
-        .btn-waiting {
-            background: #2a1b1b !important;
-            color: #ff8080 !important;
-            border: 1px solid rgba(255, 128, 128, 0.2);
-            cursor: not-allowed;
-        }
-        .btn-go {
-            background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%) !important;
-            color: #0f172a !important;
-            font-weight: 800;
-            box-shadow: 0 0 20px rgba(234, 179, 8, 0.4);
-            animation: pulse 2s infinite ease-in-out;
-        }
-        .btn-go:hover {
-            background: linear-gradient(135deg, #fde047 0%, #eab308 100%) !important;
-        }
-        .btn-ended {
-            background: #1e293b !important;
-            color: #475569 !important;
-            border: 1px solid #334155;
-            cursor: not-allowed;
-            pointer-events: none;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); box-shadow: 0 0 20px rgba(234, 179, 8, 0.4); }
-            50% { transform: scale(1.015); box-shadow: 0 0 30px rgba(234, 179, 8, 0.6); }
-            100% { transform: scale(1); box-shadow: 0 0 20px rgba(234, 179, 8, 0.4); }
-        }
-
-        /* SYSTEM AD CONTENT BOX */
-        .ad-slot {
-            background-color: rgba(30, 41, 59, 0.7);
-            width: 100%;
-            min-height: 95px;
-            margin: 20px 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            border-radius: 14px;
-            border: 1px dashed rgba(255, 255, 255, 0.15);
-            overflow: hidden;
-            backdrop-filter: blur(5px);
-        }
-
-        /* Banner Liga */
-        .banner-container { width: 100%; text-align: center; background: rgba(30, 41, 59, 0.8); padding: 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); }
-        .league-banner {
-            width: 100%; max-width: 850px; height: auto; border-radius: 16px;
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5); border: 2px solid #334155;
-        }
-
-        footer {
-            background-color: rgba(15, 23, 42, 0.9); text-align: center; padding: 20px; font-size: 0.85rem;
-            color: #94a3b8; border-top: 1px solid #1e293b; margin-top: 40px; backdrop-filter: blur(5px);
-        }
-    </style>
-</head>
-<body>
-
-    <header>
-        <h1 onclick="goHome()">Bola<span>Stream</span></h1>
-    </header>
-
-    <div class="main-content">
-        
-        <div class="clock-widget"> Waktu Anda: <span id="liveClock">00:00:00 --</span></div>
-
-        <div id="home-view">
-            <div class="search-container">
-                <input type="text" class="search-input" id="searchLiga" onkeyup="filterLiga()" placeholder="Cari nama kompetisi/liga...">
-            </div>
-
-            <div class="ad-slot">
-                <script> atOptions = { 'key' : '87e5082d860101407464681673d2af16', 'format' : 'iframe', 'height' : 90, 'width' : 728, 'params' : {} }; </script> <script src="https://www.highperformanceformat.com/87e5082d860101407464681673d2af16/invoke.js"></script> 
-            </div>
-
-            <h3 class="section-title">Pilih Kategori Kompetisi</h3>
-            
-            <div class="menu-grid" id="ligaMenuGrid">
-                <div class="menu-card wc-bg" onclick="navigateTo('worldcup-view')">
-                    <div class="menu-overlay">
-                        <div class="menu-title">World Cup</div>
-                        <div class="menu-subtitle">Lihat Pertandingan Live</div>
-                    </div>
-                </div>
-
-                <div class="menu-card pl-bg" onclick="navigateTo('premierleague-view')">
-                    <div class="menu-overlay">
-                        <div class="menu-title">Premier League</div>
-                        <div class="menu-subtitle">Jadwal & Siaran Live</div>
-                    </div>
-                </div>
-
-                <div class="menu-card sa-bg" onclick="navigateTo('seriea-view')">
-                    <div class="menu-overlay">
-                        <div class="menu-title">Serie A</div>
-                        <div class="menu-subtitle">Jadwal & Siaran Live</div>
-                    </div>
-                </div>
-
-                <div class="menu-card bl-bg" onclick="navigateTo('bundesliga-view')">
-                    <div class="menu-overlay">
-                        <div class="menu-title">Bundesliga</div>
-                        <div class="menu-subtitle">Jadwal & Siaran Live</div>
-                    </div>
-                </div>
-
-                <div class="menu-card ll-bg" onclick="navigateTo('laliga-view')">
-                    <div class="menu-overlay">
-                        <div class="menu-title">LaLiga</div>
-                        <div class="menu-subtitle">Jadwal & Siaran Live</div>
-                    </div>
-                </div>
-
-                <div class="menu-card ucl-bg" onclick="navigateTo('ucl-view')">
-                    <div class="menu-overlay">
-                        <div class="menu-title">Champions League</div>
-                        <div class="menu-subtitle">UEFA Champions League</div>
-                    </div>
-                </div>
-
-                <div class="menu-card uel-bg" onclick="navigateTo('uel-view')">
-                    <div class="menu-overlay">
-                        <div class="menu-title">Europa League</div>
-                        <div class="menu-subtitle">UEFA Europa League</div>
-                    </div>
-                </div>
-
-                <div class="menu-card uclf-bg" onclick="navigateTo('uclf-view')">
-                    <div class="menu-overlay">
-                        <div class="menu-title">Conference League</div>
-                        <div class="menu-subtitle">UEFA Conference League</div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="no-results">Kompetisi tidak ditemukan.</div>
-        </div>
-
-        <div id="worldcup-view" class="competition-view">
-            <button class="btn-back" onclick="goHome()">← Kembali Ke Menu</button>
-            
-            <div class="ad-slot">
-                <script> atOptions = { 'key' : '87e5082d860101407464681673d2af16', 'format' : 'iframe', 'height' : 90, 'width' : 728, 'params' : {} }; </script> <script src="https://www.highperformanceformat.com/87e5082d860101407464681673d2af16/invoke.js"></script> 
-            </div>
-
-            <h2 style="text-align: center; margin-bottom: 30px; text-transform: uppercase; text-shadow: 0 2px 4px rgba(0,0,0,0.6);">World Cup <span>Live Matches</span></h2>
-            
-            <div class="match-grid">
-                <!-- Match 1: France vs Morocco -->
-                <div class="card match-card" data-kickoff="2026-07-10T03:00:00+07:00">
-                    <div class="thumbnail-container">
-                        <img class="thumbnail" src="https://cdn.phototourl.com/free/2026-07-09-ca73932c-5390-4f14-b4e0-e6edbcc5796a.jpg" alt="France vs Morocco">
-                    </div>
-                    <div class="card-content">
-                        <div class="match-status status-upcoming">Mendatang</div>
-                        <div class="match-title">France vs Morocco</div>
-                        <div class="match-time">Jumat, 10 Juli - Jam 03.00 WIB</div>
-                        <div class="btn-group">
-                            <a href="https://www.effectivecpmnetwork.com/fndzdhcqc?key=2d249ac4788a32fb89541e6dc86ee3d5" target="_blank" class="btn-watch" onclick="prosesSafelink(this, 'https://www.afanyc.com/match/y0or5jh8o9djqwz')">Nonton Sekarang</a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Match 2: Spain vs Belgium -->
-                <div class="card match-card" data-kickoff="2026-07-11T02:00:00+07:00">
-                    <div class="thumbnail-container">
-                        <img class="thumbnail" src="https://cdn.phototourl.com/free/2026-07-09-36f3914d-2db9-4e15-b428-364c7365939a.jpg" alt="Spain vs Belgium">
-                    </div>
-                    <div class="card-content">
-                        <div class="match-status status-upcoming">Mendatang</div>
-                        <div class="match-title">Spain vs Belgium</div>
-                        <div class="match-time">Sabtu, 11 Juli - Jam 02.00 WIB</div>
-                        <div class="btn-group">
-                            <a href="https://www.effectivecpmnetwork.com/fndzdhcqc?key=2d249ac4788a32fb89541e6dc86ee3d5" target="_blank" class="btn-watch" onclick="prosesSafelink(this, 'https://www.afanyc.com/match/n54qllhnz4y1qvy')">Nonton Sekarang</a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Match 3: Norway vs England -->
-                <div class="card match-card" data-kickoff="2026-07-12T04:00:00+07:00">
-                    <div class="thumbnail-container">
-                        <img class="thumbnail" src="https://cdn.phototourl.com/free/2026-07-09-06541b13-2552-4460-a606-5da7cb2a1f00.jpg" alt="Norway vs England">
-                    </div>
-                    <div class="card-content">
-                        <div class="match-status status-upcoming">Mendatang</div>
-                        <div class="match-title">Norway vs England</div>
-                        <div class="match-time">Minggu, 12 Juli - Jam 04.00 WIB</div>
-                        <div class="btn-group">
-                            <a href="https://www.effectivecpmnetwork.com/fndzdhcqc?key=2d249ac4788a32fb89541e6dc86ee3d5" target="_blank" class="btn-watch" onclick="prosesSafelink(this, 'https://www.afanyc.com/match/23xmvkh60yz0qg8')">Nonton Sekarang</a>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Match 4: Argentina vs Switzerland -->
-                <div class="card match-card" data-kickoff="2026-07-12T08:00:00+07:00">
-                    <div class="thumbnail-container">
-                        <img class="thumbnail" src="https://cdn.phototourl.com/free/2026-07-09-5f8d2fec-9636-4d56-a6a6-4b685647969b.jpg" alt="Argentina vs Switzerland">
-                    </div>
-                    <div class="card-content">
-                        <div class="match-status status-upcoming">Mendatang</div>
-                        <div class="match-title">Argentina vs Switzerland</div>
-                        <div class="match-time">Minggu, 12 Juli - Jam 08.00 WIB</div>
-                        <div class="btn-group">
-                            <a href="https://www.effectivecpmnetwork.com/fndzdhcqc?key=2d249ac4788a32fb89541e6dc86ee3d5" target="_blank" class="btn-watch" onclick="prosesSafelink(this, 'https://www.afanyc.com/match/zp5rzghgw3e6q82')">Nonton Sekarang</a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div id="premierleague-view" class="competition-view">
-            <button class="btn-back" onclick="goHome()">← Kembali Ke Menu</button>
-            <div class="ad-slot">
-                <script> atOptions = { 'key' : '87e5082d860101407464681673d2af16', 'format' : 'iframe', 'height' : 90, 'width' : 728, 'params' : {} }; </script> <script src="https://www.highperformanceformat.com/87e5082d860101407464681673d2af16/invoke.js"></script> 
-            </div>
-            <h2 style="text-align: center; margin-bottom: 30px; text-transform: uppercase; text-shadow: 0 2px 4px rgba(0,0,0,0.6);">Premier League</h2>
-            <div class="banner-container"><img class="league-banner" src="https://cdn.phototourl.com/free/2026-07-06-f7466900-aadd-4872-abfc-2dc2349634f7.jpg"><p style="margin-top:25px;color:#e2e8f0;font-weight: 500;">Siaran langsung Premier League akan segera tersedia.</p></div>
-        </div>
-
-        <div id="seriea-view" class="competition-view">
-            <button class="btn-back" onclick="goHome()">← Kembali Ke Menu</button>
-            <div class="ad-slot">
-                <script> atOptions = { 'key' : '87e5082d860101407464681673d2af16', 'format' : 'iframe', 'height' : 90, 'width' : 728, 'params' : {} }; </script> <script src="https://www.highperformanceformat.com/87e5082d860101407464681673d2af16/invoke.js"></script> 
-            </div>
-            <h2 style="text-align: center; margin-bottom: 30px; text-transform: uppercase; text-shadow: 0 2px 4px rgba(0,0,0,0.6);">Serie A</h2>
-            <div class="banner-container"><img class="league-banner" src="https://cdn.phototourl.com/free/2026-07-06-781d87b7-7940-400b-9bec-773ab2823db0.jpg"><p style="margin-top:25px;color:#e2e8f0;font-weight: 500;">Siaran langsung Serie A akan segera tersedia.</p></div>
-        </div>
-
-        <div id="bundesliga-view" class="competition-view">
-            <button class="btn-back" onclick="goHome()">← Kembali Ke Menu</button>
-            <div class="ad-slot">
-                <script> atOptions = { 'key' : '87e5082d860101407464681673d2af16', 'format' : 'iframe', 'height' : 90, 'width' : 728, 'params' : {} }; </script> <script src="https://www.highperformanceformat.com/87e5082d860101407464681673d2af16/invoke.js"></script> 
-            </div>
-            <h2 style="text-align: center; margin-bottom: 30px; text-transform: uppercase; text-shadow: 0 2px 4px rgba(0,0,0,0.6);">Bundesliga</h2>
-            <div class="banner-container"><img class="league-banner" src="https://cdn.phototourl.com/free/2026-07-06-407fb065-4126-4660-87ca-8db819160341.jpg"><p style="margin-top:25px;color:#e2e8f0;font-weight: 500;">Siaran langsung Bundesliga akan segera tersedia.</p></div>
-        </div>
-
-        <div id="laliga-view" class="competition-view">
-            <button class="btn-back" onclick="goHome()">← Kembali Ke Menu</button>
-            <div class="ad-slot">
-                <script> atOptions = { 'key' : '87e5082d860101407464681673d2af16', 'format' : 'iframe', 'height' : 90, 'width' : 728, 'params' : {} }; </script> <script src="https://www.highperformanceformat.com/87e5082d860101407464681673d2af16/invoke.js"></script> 
-            </div>
-            <h2 style="text-align: center; margin-bottom: 30px; text-transform: uppercase; text-shadow: 0 2px 4px rgba(0,0,0,0.6);">LaLiga</h2>
-            <div class="banner-container"><img class="league-banner" src="https://cdn.phototourl.com/free/2026-07-06-2f7b45e0-290c-4838-8f2c-726fb7161dbd.jpg"><p style="margin-top:25px;color:#e2e8f0;font-weight: 500;">Siaran langsung LaLiga akan segera tersedia.</p></div>
-        </div>
-
-        <div id="ucl-view" class="competition-view">
-            <button class="btn-back" onclick="goHome()">← Kembali Ke Menu</button>
-            <div class="ad-slot">
-                <script> atOptions = { 'key' : '87e5082d860101407464681673d2af16', 'format' : 'iframe', 'height' : 90, 'width' : 728, 'params' : {} }; </script> <script src="https://www.highperformanceformat.com/87e5082d860101407464681673d2af16/invoke.js"></script> 
-            </div>
-            <h2 style="text-align: center; margin-bottom: 30px; text-transform: uppercase; text-shadow: 0 2px 4px rgba(0,0,0,0.6);">UEFA Champions League</h2>
-            <div class="banner-container"><img class="league-banner" src="https://cdn.phototourl.com/free/2026-07-06-b34494f4-26ad-4478-8b24-8170ea8b1b7a.jpg"><p style="margin-top:25px;color:#e2e8f0;font-weight: 500;">Siaran langsung UEFA Champions League akan segera tersedia.</p></div>
-        </div>
-
-        <div id="uel-view" class="competition-view">
-            <button class="btn-back" onclick="goHome()">← Kembali Ke Menu</button>
-            <div class="ad-slot">
-                <script> atOptions = { 'key' : '87e5082d860101407464681673d2af16', 'format' : 'iframe', 'height' : 90, 'width' : 728, 'params' : {} }; </script> <script src="https://www.highperformanceformat.com/87e5082d860101407464681673d2af16/invoke.js"></script> 
-            </div>
-            <h2 style="text-align: center; margin-bottom: 30px; text-transform: uppercase; text-shadow: 0 2px 4px rgba(0,0,0,0.6);">UEFA Europa League</h2>
-            <div class="banner-container"><img class="league-banner" src="https://cdn.phototourl.com/free/2026-07-06-a460cdee-af1d-4efe-bca1-3ded7298c55a.jpg"><p style="margin-top:25px;color:#e2e8f0;font-weight: 500;">Siaran langsung UEFA Europa League akan segera tersedia.</p></div>
-        </div>
-
-        <div id="uclf-view" class="competition-view">
-            <button class="btn-back" onclick="goHome()">← Kembali Ke Menu</button>
-            <div class="ad-slot">
-                <script> atOptions = { 'key' : '87e5082d860101407464681673d2af16', 'format' : 'iframe', 'height' : 90, 'width' : 728, 'params' : {} }; </script> <script src="https://www.highperformanceformat.com/87e5082d860101407464681673d2af16/invoke.js"></script> 
-            </div>
-            <h2 style="text-align: center; margin-bottom: 30px; text-transform: uppercase; text-shadow: 0 2px 4px rgba(0,0,0,0.6);">UEFA Conference League</h2>
-            <div class="banner-container"><img class="league-banner" src="https://cdn.phototourl.com/free/2026-07-06-9103dbb1-0c84-4375-8071-74f03b41242e.jpg"><p style="margin-top:25px;color:#e2e8f0;font-weight: 500;">Siaran langsung UEFA Conference League akan segera tersedia.</p></div>
-        </div>
-
-        <div class="ad-slot">
-            <script> atOptions = { 'key' : '87e5082d860101407464681673d2af16', 'format' : 'iframe', 'height' : 90, 'width' : 728, 'params' : {} }; </script> <script src="https://www.highperformanceformat.com/87e5082d860101407464681673d2af16/invoke.js"></script> 
-        </div>
-
-    </div>
-
-    <footer>
-        &copy; 2026 BolaStream. Hak Cipta Dilindungi.
-    </footer>
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Superkickoff Football Manager - Premier League & La Liga 2026/2027</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome CDN for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/styles.css">
     <script>
-        // SISTEM DUAL: LIVE CLOCK GLOBAL & DETEKSI KICK-OFF AKURAT
-        function updateTimeAndStatus() {
-            const now = new Date();
-            
-            // 1. Ambil nama singkatan zona waktu dari browser pengguna (contoh: WIB, WITA, GMT+8, dll)
-            let tzName = "WIB"; 
-            try {
-                const parts = new Intl.DateTimeFormat('id-ID', { timeZoneName: 'short' }).formatToParts(now);
-                const tzPart = parts.find(p => p.type === 'timeZoneName');
-                if (tzPart) tzName = tzPart.value;
-            } catch (e) { }
-
-            // Tampilkan Jam digital real-time di atas sesuai jam HP penonton
-            const hours = String(now.getHours()).padStart(2, '0');
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            const seconds = String(now.getSeconds()).padStart(2, '0');
-            document.getElementById('liveClock').textContent = `${hours}:${minutes}:${seconds} ${tzName}`;
-
-            // 2. Evaluasi Status Setiap Match Card secara akurat
-            const matchCards = document.querySelectorAll('.match-card');
-            matchCards.forEach(card => {
-                const kickoffStr = card.getAttribute('data-kickoff');
-                const kickoffTime = new Date(kickoffStr); // Browser otomatis mengubah +07:00 ke waktu lokal HP penonton
-                const statusLabel = card.querySelector('.match-status');
-                const watchBtn = card.querySelector('.btn-watch');
-
-                // Hitung selisih waktu dalam milidetik
-                const diffTime = now - kickoffTime; 
-                const threeHoursInMs = 3 * 60 * 60 * 1000; // 3 jam = 10.800.000 ms
-
-                // LOGIKA BARU: Jika waktu saat ini sudah melampaui 3 jam dari kick-off
-                if (diffTime >= threeHoursInMs) {
-                    if (statusLabel.textContent !== 'Pertandingan Selesai') {
-                        statusLabel.textContent = 'Pertandingan Selesai';
-                        statusLabel.className = 'match-status status-ended';
-                        
-                        // Kunci tombol nonton agar tidak bisa diklik lagi
-                        if (watchBtn) {
-                            watchBtn.textContent = 'Selesai';
-                            watchBtn.className = 'btn-watch btn-ended';
-                            watchBtn.removeAttribute('onclick');
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        superteal: {
+                            400: '#2dd4bf',
+                            500: '#14b8a6',
+                            600: '#0d9488',
+                            700: '#0f766e',
                         }
                     }
                 }
-                // Jika waktu saat ini sudah memasuki atau melewati kick-off tapi belum 3 jam (Status Live)
-                else if (now >= kickoffTime) {
-                    if (statusLabel.textContent !== '● Live Streaming' && statusLabel.textContent !== 'Pertandingan Selesai') {
-                        statusLabel.textContent = '● Live Streaming';
-                        statusLabel.className = 'match-status status-live';
-                    }
-                } 
-                // Jika waktu sekarang belum memasuki jam kick-off pertandingan (Status Mendatang)
-                else {
-                    if (statusLabel.textContent !== 'Mendatang') {
-                        statusLabel.textContent = 'Mendatang';
-                        statusLabel.className = 'match-status status-upcoming';
-                    }
-                }
-            });
-        }
-
-        // Jalankan pengecekan real-time presisi tinggi setiap 1 detik
-        window.addEventListener('DOMContentLoaded', () => {
-            updateTimeAndStatus();
-            setInterval(updateTimeAndStatus, 1000);
-        });
-
-
-        // Fungsi Filter/Pencarian Kompetisi
-        function filterLiga() {
-            let input = document.getElementById('searchLiga').value.toLowerCase();
-            let grid = document.getElementById('ligaMenuGrid');
-            let cards = grid.getElementsByClassName('menu-card');
-            let totalVisible = 0;
-
-            for (let i = 0; i < cards.length; i++) {
-                let title = cards[i].querySelector('.menu-title').textContent.toLowerCase();
-                if (title.includes(input)) {
-                    cards[i].style.display = "";
-                    totalVisible++;
-                } else {
-                    cards[i].style.display = "none";
-                }
             }
-
-            let noResults = document.getElementById('no-results');
-            if (totalVisible === 0) {
-                noResults.style.display = "block";
-            } else {
-                noResults.style.display = "none";
-            }
-        }
-
-        // Navigasi halaman
-        function navigateTo(viewId) {
-            document.getElementById('home-view').style.display = 'none';
-            const views = document.querySelectorAll('.competition-view');
-            views.forEach(v => v.style.display = 'none');
-            document.getElementById(viewId).style.display = 'block';
-            window.scrollTo(0, 0);
-        }
-
-        function goHome() {
-            const views = document.querySelectorAll('.competition-view');
-            views.forEach(v => v.style.display = 'none');
-            document.getElementById('home-view').style.display = 'block';
-            document.getElementById('searchLiga').value = "";
-            filterLiga();
-            window.scrollTo(0, 0);
-        }
-
-        // FUNGSI SAFELINK INTERAKTIF (COUNTDOWN TIMER)
-        function prosesSafelink(anchorElement, realStreamUrl) {
-            if (anchorElement.classList.contains('btn-waiting') || anchorElement.classList.contains('btn-go') || anchorElement.classList.contains('btn-ended')) {
-                return;
-            }
-
-            let timeLeft = 10;
-            const parentGroup = anchorElement.parentElement;
-            
-            anchorElement.style.display = 'none';
-
-            const countdownBtn = document.createElement('button');
-            countdownBtn.className = 'btn-watch btn-waiting';
-            countdownBtn.innerHTML = `⏳ Memproses Siaran... (${timeLeft}s)`;
-            parentGroup.appendChild(countdownBtn);
-
-            const timer = setInterval(() => {
-                timeLeft--;
-                countdownBtn.innerHTML = `⏳ Memproses Siaran... (${timeLeft}s)`;
-
-                if (timeLeft <= 0) {
-                    clearInterval(timer);
-                    countdownBtn.className = 'btn-watch btn-go';
-                    countdownBtn.innerHTML = '🚀 STREAMING SEKARANG';
-                    
-                    countdownBtn.onclick = function() {
-                        window.open(realStreamUrl, '_blank');
-                    };
-                }
-            }, 1000);
         }
     </script>
+</head>
+<body class="h-full flex flex-col bg-slate-950 text-slate-100 antialiased overflow-hidden font-sans">
 
-    <script src="https://pl30212425.effectivecpmnetwork.com/55/9e/07/559e07a11ded21f9cbf1db19e0b84632.js"></script>
+    <!-- Toast Notification Container -->
+    <div id="toast-container" class="fixed top-3 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2 max-w-xs sm:max-w-md w-[92%] pointer-events-none"></div>
 
+    <!-- Floating Ghost Element for Touch Dragging (FIX: Tersembunyi bawaan) -->
+    <div id="touch-ghost" class="hidden w-11 h-11 rounded-full bg-superteal-500 text-slate-950 font-black flex-col items-center justify-center text-xs border-2 border-white">
+        <span id="ghost-ovr">75</span>
+        <span id="ghost-pos" class="text-[8px] uppercase font-bold">F</span>
+    </div>
+
+    <!-- APP CONTAINER -->
+    <div id="app" class="flex-1 flex flex-col max-w-md md:max-w-4xl lg:max-w-6xl w-full mx-auto bg-slate-900 shadow-2xl overflow-hidden relative">
+        
+        <!-- COMPACT HEADER BAR -->
+        <header id="header" class="hidden bg-slate-950/95 border-b border-slate-800 px-3 py-2 flex-shrink-0 z-20">
+            <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center space-x-2 truncate">
+                    <div id="header-club-badge-wrap" class="flex-shrink-0"></div>
+                    <div class="truncate">
+                        <div class="flex items-center space-x-1.5">
+                            <h1 id="header-club-name" class="font-extrabold text-xs sm:text-sm text-slate-100 truncate">Arsenal</h1>
+                            <span id="header-gw" class="text-[10px] font-bold bg-superteal-500/20 text-superteal-400 border border-superteal-500/30 px-1.5 py-0.2 rounded-full flex-shrink-0">Pekan 1/38</span>
+                        </div>
+                        <p class="text-[10px] text-slate-400 flex items-center gap-2 truncate">
+                            <span class="text-amber-400 font-bold"><i class="fa-solid font-mono mr-0.5">£</i><span id="header-budget">120M</span></span>
+                            <span>•</span>
+                            <span id="header-league-tag" class="text-superteal-400 font-semibold truncate">Premier League</span>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-1.5">
+                    <button onclick="manualSaveGame()" title="Simpan Game" class="p-1.5 bg-slate-800 hover:bg-slate-700 text-superteal-400 border border-slate-700 rounded-lg text-xs transition">
+                        <i class="fa-solid fa-floppy-disk"></i>
+                    </button>
+                    <button onclick="resetGameSave()" title="Ulang Game / Reset" class="p-1.5 bg-slate-800 hover:bg-rose-900/60 text-rose-400 border border-slate-700 rounded-lg text-xs transition">
+                        <i class="fa-solid fa-rotate-left"></i>
+                    </button>
+                    <button onclick="switchTab('squad')" class="px-2.5 py-1.5 bg-gradient-to-r from-superteal-500 to-emerald-500 hover:from-superteal-400 hover:to-emerald-400 text-slate-950 font-black rounded-lg shadow text-[11px] flex items-center gap-1 transition transform active:scale-95 flex-shrink-0">
+                        <i class="fa-solid fa-clipboard-user text-[10px]"></i>
+                        <span>Taktik</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- MAIN SCROLLABLE CONTENT AREA -->
+        <main id="main-content" class="flex-1 overflow-y-auto p-2 sm:p-4 relative flex flex-col">
+            
+            <!-- 0. LEAGUE & CLUB SELECTION SCREEN -->
+            <section id="screen-select-club" class="my-auto py-2 space-y-3">
+                <div class="text-center space-y-1 max-w-sm mx-auto">
+                    <div class="inline-flex items-center justify-center w-11 h-11 rounded-2xl bg-superteal-500/10 border border-superteal-500/30 text-superteal-400 text-xl mb-0.5 shadow-inner">
+                        <i class="fa-solid fa-futbol"></i>
+                    </div>
+                    <h1 class="text-xl sm:text-2xl font-black tracking-tight bg-gradient-to-r from-white via-slate-100 to-superteal-400 bg-clip-text text-transparent">
+                        Superkickoff Manager
+                    </h1>
+                    <p class="text-slate-400 text-xs">Pilih Liga & Klub Musim 2026/2027</p>
+                </div>
+
+                <div class="max-w-sm mx-auto bg-slate-950/90 border border-slate-800 p-3 rounded-2xl shadow space-y-2.5">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Nama Manajer</label>
+                        <input type="text" id="input-manager-name" value="Paul Farman" placeholder="Nama Manajer..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-superteal-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Pilih Liga Kompetisi</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button id="btn-league-epl" onclick="changeSelectedLeague('EPL')" class="py-2 px-2 rounded-xl border border-superteal-500 bg-superteal-500/20 text-white font-extrabold text-xs flex items-center justify-center gap-1.5 transition">
+                                <i class="fa-solid fa-trophy text-amber-400"></i>
+                                <span>Premier League</span>
+                            </button>
+                            <button id="btn-league-laliga" onclick="changeSelectedLeague('LALIGA')" class="py-2 px-2 rounded-xl border border-slate-800 bg-slate-900 text-slate-400 font-bold text-xs flex items-center justify-center gap-1.5 hover:text-white transition">
+                                <i class="fa-solid fa-crown text-amber-400"></i>
+                                <span>La Liga</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="space-y-1.5">
+                    <h2 id="select-club-heading" class="text-[10px] font-bold text-slate-400 uppercase tracking-wider text-center">Pilih Klub Premier League</h2>
+                    <div id="club-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-[420px] overflow-y-auto p-1"></div>
+                </div>
+            </section>
+
+            <!-- 1. DASHBOARD SCREEN -->
+            <section id="screen-dashboard" class="hidden space-y-3 my-auto">
+                <div class="bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border border-slate-800 rounded-xl p-3 shadow flex items-center justify-between gap-2">
+                    <div class="space-y-0.5">
+                        <span id="dash-league-name-tag" class="inline-flex items-center gap-1 text-[10px] text-amber-400 font-semibold">
+                            <i class="fa-solid fa-trophy"></i> Premier League 2026/2027
+                        </span>
+                        <h2 class="text-base sm:text-lg font-extrabold text-white leading-tight" id="dash-welcome-title">Selamat Datang, Manajer</h2>
+                        <p class="text-[10px] text-slate-400">Atur taktik geser pemain, beri arahan, dan raih trofi!</p>
+                    </div>
+                    <button onclick="switchTab('squad')" class="px-3 py-2 bg-superteal-500 hover:bg-superteal-400 text-slate-950 font-black rounded-lg shadow text-xs flex-shrink-0 flex items-center gap-1">
+                        <i class="fa-solid fa-play text-xs"></i> <span>PERTANDINGAN</span>
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <div class="bg-slate-950/70 border border-slate-800 rounded-xl p-2.5 flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-lg bg-superteal-500/10 text-superteal-400 flex items-center justify-center text-sm flex-shrink-0">
+                            <i class="fa-solid fa-chart-line"></i>
+                        </div>
+                        <div>
+                            <span class="text-[9px] font-semibold text-slate-400 uppercase block">Posisi</span>
+                            <p id="dash-stat-rank" class="text-sm font-black text-white">1 / 20</p>
+                        </div>
+                    </div>
+                    <div class="bg-slate-950/70 border border-slate-800 rounded-xl p-2.5 flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-lg bg-amber-500/10 text-amber-400 flex items-center justify-center text-sm flex-shrink-0">
+                            <i class="fa-solid fa-wallet"></i>
+                        </div>
+                        <div>
+                            <span class="text-[9px] font-semibold text-slate-400 uppercase block">Anggaran</span>
+                            <p id="dash-stat-budget" class="text-sm font-black text-amber-400">£120M</p>
+                        </div>
+                    </div>
+                    <div class="bg-slate-950/70 border border-slate-800 rounded-xl p-2.5 flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center text-sm flex-shrink-0">
+                            <i class="fa-solid fa-shield-halved"></i>
+                        </div>
+                        <div>
+                            <span class="text-[9px] font-semibold text-slate-400 uppercase block">OVR Tim</span>
+                            <p id="dash-stat-ovr" class="text-sm font-black text-white">85</p>
+                        </div>
+                    </div>
+                    <div class="bg-slate-950/70 border border-slate-800 rounded-xl p-2.5 flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center text-sm flex-shrink-0">
+                            <i class="fa-solid fa-crown"></i>
+                        </div>
+                        <div>
+                            <span class="text-[9px] font-semibold text-slate-400 uppercase block">Poin</span>
+                            <p id="dash-stat-pts" class="text-sm font-black text-white">0 Pts</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-3 space-y-2">
+                        <div class="flex items-center justify-between border-b border-slate-800/80 pb-1.5">
+                            <span class="text-[10px] font-extrabold text-slate-300 uppercase tracking-wider flex items-center gap-1">
+                                <i class="fa-solid fa-calendar-check text-superteal-400"></i> Laga Berikutnya
+                            </span>
+                            <span id="dash-next-gw" class="text-[10px] font-bold text-slate-400">Pekan 1</span>
+                        </div>
+
+                        <div class="flex items-center justify-around py-2 bg-slate-900/60 rounded-lg border border-slate-800/50">
+                            <div class="text-center w-1/3 flex flex-col items-center">
+                                <div id="dash-next-home-badge" class="flex items-center justify-center"></div>
+                                <p id="dash-next-home-name" class="font-bold text-xs text-slate-200 truncate mt-1">Arsenal</p>
+                            </div>
+                            <span class="text-[10px] font-black px-2 py-0.5 bg-slate-800 text-superteal-400 rounded-full border border-slate-700">VS</span>
+                            <div class="text-center w-1/3 flex flex-col items-center">
+                                <div id="dash-next-away-badge" class="flex items-center justify-center"></div>
+                                <p id="dash-next-away-name" class="font-bold text-xs text-slate-200 truncate mt-1">Chelsea</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-3 space-y-1.5">
+                        <div class="flex items-center justify-between border-b border-slate-800 pb-1">
+                            <span class="text-[10px] font-extrabold text-slate-300 uppercase tracking-wider">Top Klasemen</span>
+                            <button onclick="switchTab('standings')" class="text-[10px] text-superteal-400 font-bold hover:underline">Lihat Semua</button>
+                        </div>
+                        <table class="w-full text-[11px] text-left">
+                            <thead class="text-[9px] uppercase text-slate-500 border-b border-slate-800">
+                                <tr>
+                                    <th class="py-1">#</th>
+                                    <th class="py-1">Klub</th>
+                                    <th class="py-1 text-center">Main</th>
+                                    <th class="py-1 text-right">Pts</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dash-mini-table" class="divide-y divide-slate-800/50"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 2. SQUAD & TACTICS SCREEN -->
+            <section id="screen-squad" class="hidden flex-1 flex flex-col justify-between space-y-2 overflow-hidden select-none">
+                <div class="grid grid-cols-3 gap-2 flex-shrink-0">
+                    <div onclick="cycleCaptain()" class="bg-white text-slate-900 rounded-2xl p-2 flex items-center space-x-2 shadow cursor-pointer border border-slate-200 hover:bg-slate-50 transition">
+                        <div class="w-7 h-7 rounded-full bg-slate-100 border border-slate-300 flex items-center justify-center font-extrabold text-slate-700 text-xs shadow-inner flex-shrink-0">C</div>
+                        <div class="truncate">
+                            <span class="text-[9px] font-bold text-slate-400 uppercase block">Kapten</span>
+                            <span id="tactic-captain-name" class="text-xs font-black text-superteal-700 truncate block">Paul Farman</span>
+                        </div>
+                    </div>
+
+                    <div onclick="cyclePressingStyle()" class="bg-white text-slate-900 rounded-2xl p-2 flex items-center space-x-2 shadow cursor-pointer border border-slate-200 hover:bg-slate-50 transition">
+                        <div class="w-7 h-7 rounded-full bg-slate-100 border border-slate-300 flex items-center justify-center text-slate-700 text-xs shadow-inner flex-shrink-0">
+                            <i class="fa-solid fa-person-running"></i>
+                        </div>
+                        <div class="truncate">
+                            <span class="text-[9px] font-bold text-slate-400 uppercase block">Tekanan</span>
+                            <span id="tactic-pressing-label" class="text-xs font-black text-superteal-700 truncate block">Soft</span>
+                        </div>
+                    </div>
+
+                    <div onclick="openFormationModal()" class="bg-white text-slate-900 rounded-2xl p-2 flex items-center space-x-2 shadow cursor-pointer border border-slate-200 hover:bg-slate-50 transition">
+                        <div class="w-7 h-7 rounded-full bg-slate-100 border border-slate-300 flex items-center justify-center text-slate-700 text-xs shadow-inner flex-shrink-0">
+                            <i class="fa-solid fa-chess-board"></i>
+                        </div>
+                        <div class="truncate">
+                            <span class="text-[9px] font-bold text-slate-400 uppercase block">Taktik</span>
+                            <span id="tactic-formation-label" class="text-xs font-black text-superteal-700 truncate block">3-3-4</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-2 flex-shrink-0">
+                    <button onclick="showToast('Sistem Layer Aktif', 'info')" class="w-9 h-9 rounded-xl bg-superteal-700 hover:bg-superteal-600 text-slate-100 flex items-center justify-center text-sm shadow">
+                        <i class="fa-solid fa-layer-group"></i>
+                    </button>
+                    <button onclick="manualSaveGame()" class="w-9 h-9 rounded-xl bg-superteal-700 hover:bg-superteal-600 text-slate-100 flex items-center justify-center text-sm shadow" title="Simpan Taktik">
+                        <i class="fa-solid fa-floppy-disk"></i>
+                    </button>
+                    <button onclick="cycleMovementStyle()" class="flex-1 py-1.5 px-3 rounded-xl bg-superteal-700 hover:bg-superteal-600 text-slate-100 font-bold text-xs flex items-center justify-center gap-1.5 shadow">
+                        <i class="fa-solid fa-child"></i>
+                        <span id="btn-movement-label">Pergerakan</span>
+                    </button>
+                    <button onclick="cyclePassingStyle()" class="flex-1 py-1.5 px-3 rounded-xl bg-slate-400/80 hover:bg-slate-400 text-slate-900 font-bold text-xs flex items-center justify-center gap-1.5 shadow">
+                        <i class="fa-solid fa-arrow-right-arrow-left"></i>
+                        <span id="btn-passing-label">Umpan</span>
+                    </button>
+                </div>
+
+                <div class="flex-1 pitch-surface rounded-2xl p-2 flex flex-col justify-between overflow-hidden relative shadow-inner min-h-[220px]">
+                    <div class="pitch-lines"></div>
+                    <div class="pitch-center-line"></div>
+                    <div class="pitch-center-circle"></div>
+                    <div class="pitch-box-left"></div>
+                    <div class="pitch-box-right"></div>
+
+                    <div id="tactics-pitch-container" class="relative w-full h-full flex items-center justify-between z-10 px-1"></div>
+                </div>
+
+                <div class="bg-slate-950/90 border border-slate-800 rounded-2xl overflow-hidden flex flex-col flex-shrink-0">
+                    <div class="bg-superteal-700/80 text-white font-extrabold text-xs py-1 px-3 text-center tracking-wider shadow">
+                        Cadangan
+                    </div>
+                    <div id="bench-horizontal-list" class="p-2 flex items-center space-x-3 overflow-x-auto min-h-[90px]"></div>
+                </div>
+
+                <div class="flex items-center justify-between gap-2 pt-1 flex-shrink-0">
+                    <div class="flex items-center space-x-2 bg-slate-950/80 border border-slate-800 p-2 rounded-2xl flex-1 truncate">
+                        <div class="text-[9px] font-bold text-slate-400 flex flex-col items-center border-r border-slate-800 pr-2 flex-shrink-0">
+                            <span class="text-superteal-400">18°</span>
+                            <i class="fa-solid fa-cloud-sun text-slate-400"></i>
+                        </div>
+                        
+                        <div class="flex items-center space-x-2 truncate">
+                            <div class="text-center">
+                                <span id="tactics-match-gw" class="text-[9px] font-extrabold text-slate-400 uppercase block">Pekan 1</span>
+                                <div class="flex items-center space-x-1.5 mt-0.5">
+                                    <span id="tactics-home-ovr" class="text-[10px] font-bold text-slate-300">85</span>
+                                    <div id="tactics-home-badge-wrap" class="flex-shrink-0"></div>
+                                    <div id="tactics-away-badge-wrap" class="flex-shrink-0"></div>
+                                    <span id="tactics-away-ovr" class="text-[10px] font-bold text-slate-300">83</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button onclick="goToMatchSimulation()" class="py-3 px-5 bg-gradient-to-r from-superteal-400 to-superteal-500 hover:from-superteal-300 hover:to-superteal-400 text-slate-950 font-black rounded-2xl shadow-lg flex items-center justify-center gap-2 text-sm sm:text-base flex-shrink-0 transition active:scale-95">
+                        <i class="fa-solid fa-futbol text-base"></i>
+                        <span>Main pertandingan</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- 3. MATCHDAY LIVE SIMULATION SCREEN -->
+            <section id="screen-match" class="hidden flex-1 flex flex-col space-y-2 overflow-hidden">
+                <div class="bg-gradient-to-b from-slate-900 to-slate-950 border border-slate-800 rounded-2xl p-3 shadow-lg flex-shrink-0 space-y-2">
+                    <div class="flex items-center justify-between text-[10px] text-slate-400 border-b border-slate-800/80 pb-1">
+                        <span class="flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-superteal-500 animate-pulse"></span>
+                            <span id="match-status-label" class="font-bold text-slate-200">Siap Bertanding</span>
+                        </span>
+                        <span id="match-gw-title" class="font-bold text-superteal-400">Pekan 1</span>
+                    </div>
+
+                    <div class="flex items-center justify-between gap-1">
+                        <div class="flex-1 flex items-center gap-2 truncate">
+                            <div id="match-home-badge-wrap" class="flex-shrink-0"></div>
+                            <div class="truncate">
+                                <h3 id="match-home-name" class="font-black text-xs sm:text-sm text-white truncate">Home</h3>
+                                <p id="match-home-tactic" class="text-[9px] text-slate-400 truncate">High Press</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-xl flex flex-col items-center min-w-[80px] flex-shrink-0">
+                            <div class="text-xl font-black text-white font-mono flex items-center gap-1">
+                                <span id="match-home-score">0</span>
+                                <span class="text-slate-600">:</span>
+                                <span id="match-away-score">0</span>
+                            </div>
+                            <span id="match-timer" class="text-[10px] font-mono font-bold text-superteal-400">00'</span>
+                        </div>
+
+                        <div class="flex-1 flex items-center justify-end gap-2 truncate text-right">
+                            <div class="truncate">
+                                <h3 id="match-away-name" class="font-black text-xs sm:text-sm text-white truncate">Away</h3>
+                                <p id="match-away-tactic" class="text-[9px] text-slate-400 truncate">Counter</p>
+                            </div>
+                            <div id="match-away-badge-wrap" class="flex-shrink-0"></div>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-center gap-2 pt-1">
+                        <button id="btn-start-match" onclick="startMatchSimulation()" class="px-3 py-1.5 bg-superteal-500 hover:bg-superteal-400 text-slate-950 font-black rounded-xl text-xs flex items-center gap-1 transition">
+                            <i class="fa-solid fa-play text-[10px]"></i> <span>Mulai</span>
+                        </button>
+                        <button id="btn-speed-match" onclick="toggleMatchSpeed()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl text-xs flex items-center gap-1 transition">
+                            <i class="fa-solid fa-forward text-[10px]"></i> <span id="btn-speed-text">1x</span>
+                        </button>
+                        <button id="btn-skip-match" onclick="instantSimulateMatch()" class="px-3 py-1.5 bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/30 font-bold rounded-xl text-xs flex items-center gap-1 transition">
+                            <i class="fa-solid fa-forward-fast text-[10px]"></i> <span>Skip</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex-1 grid grid-cols-1 md:grid-cols-12 gap-2 overflow-hidden min-h-0">
+                    <div class="md:col-span-7 bg-slate-950/80 border border-slate-800 rounded-2xl p-2 flex flex-col min-h-0 overflow-hidden">
+                        <span class="text-[10px] font-extrabold text-slate-300 uppercase tracking-wider pb-1 border-b border-slate-800 flex items-center gap-1 flex-shrink-0">
+                            <i class="fa-solid fa-comment-dots text-superteal-400"></i> Live Commentary
+                        </span>
+                        <div id="match-commentary-box" class="flex-1 overflow-y-auto space-y-1.5 pt-1.5 pr-0.5 text-[11px]">
+                            <div class="p-2 bg-slate-900/50 rounded-lg text-slate-400 text-center italic">
+                                Klik 'Mulai' untuk menjalankan simulasi langsung.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="md:col-span-5 bg-slate-950/80 border border-slate-800 rounded-2xl p-2.5 flex flex-col justify-between overflow-y-auto">
+                        <span class="text-[10px] font-extrabold text-slate-300 uppercase tracking-wider pb-1 border-b border-slate-800 flex-shrink-0">
+                            Statistik
+                        </span>
+
+                        <div class="space-y-2 text-xs py-1">
+                            <div>
+                                <div class="flex justify-between text-[10px] mb-0.5">
+                                    <span id="stat-poss-home" class="font-bold text-superteal-400">50%</span>
+                                    <span class="text-slate-400">Penguasaan</span>
+                                    <span id="stat-poss-away" class="font-bold text-slate-300">50%</span>
+                                </div>
+                                <div class="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden flex">
+                                    <div id="bar-poss-home" class="bg-superteal-500 h-full w-1/2"></div>
+                                    <div id="bar-poss-away" class="bg-slate-600 h-full w-1/2"></div>
+                                </div>
+                            </div>
+
+                            <div class="flex justify-between items-center py-1 border-b border-slate-800/60 text-[11px]">
+                                <span id="stat-shots-home" class="font-bold text-white">0</span>
+                                <span class="text-slate-400">Tembakan</span>
+                                <span id="stat-shots-away" class="font-bold text-white">0</span>
+                            </div>
+
+                            <div class="flex justify-between items-center py-1 border-b border-slate-800/60 text-[11px]">
+                                <span id="stat-target-home" class="font-bold text-superteal-400">0</span>
+                                <span class="text-slate-400">On Target</span>
+                                <span id="stat-target-away" class="font-bold text-superteal-400">0</span>
+                            </div>
+                        </div>
+
+                        <div class="pt-1 border-t border-slate-800 flex-shrink-0">
+                            <span class="text-[9px] font-bold text-slate-400 uppercase block mb-1">Pencetak Gol</span>
+                            <div id="match-scorers-list" class="text-[10px] text-slate-300 italic min-h-[40px]">
+                                Belum ada gol.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="match-finish-action-bar" class="hidden pt-1 flex-shrink-0">
+                    <button onclick="goToWeekSummaryScreen()" class="w-full py-3 bg-gradient-to-r from-superteal-500 to-emerald-500 text-slate-950 font-black rounded-2xl shadow-xl flex items-center justify-center gap-2 text-xs sm:text-sm transition transform active:scale-95">
+                        <span>Lanjut Lihat Hasil Semua Pertandingan</span>
+                        <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+                </div>
+            </section>
+
+            <!-- 3B. WEEK SUMMARY SCREEN -->
+            <section id="screen-week-summary" class="hidden flex-1 flex flex-col space-y-3 overflow-hidden">
+                <div class="bg-slate-950 border border-slate-800 rounded-2xl p-3 flex items-center justify-between flex-shrink-0">
+                    <div>
+                        <span id="week-summary-gw-title" class="text-[10px] font-bold text-superteal-400 uppercase tracking-wider block">Pekan 1</span>
+                        <h2 class="text-sm sm:text-base font-black text-white">Hasil Lengkap Pertandingan</h2>
+                    </div>
+                    <span class="w-8 h-8 rounded-full bg-slate-800 border border-slate-600 text-slate-300 flex items-center justify-center text-sm font-black">
+                        <i class="fa-solid fa-list-check"></i>
+                    </span>
+                </div>
+
+                <div id="week-summary-matches-container" class="flex-1 overflow-y-auto space-y-2 pr-0.5"></div>
+
+                <div class="pt-1 flex-shrink-0">
+                    <button onclick="finishWeekAndGoHome()" class="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-slate-950 font-black rounded-2xl shadow-xl flex items-center justify-center gap-2 text-xs sm:text-sm transition transform active:scale-95">
+                        <i class="fa-solid fa-house"></i>
+                        <span>Lanjut ke Beranda</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- 4. STANDINGS SCREEN -->
+            <section id="screen-standings" class="hidden flex-1 flex flex-col space-y-2 overflow-hidden">
+                <div class="bg-slate-950 border border-slate-800 rounded-2xl p-2.5 flex items-center justify-between flex-shrink-0">
+                    <h2 class="font-extrabold text-xs sm:text-sm text-white flex items-center gap-1.5">
+                        <i class="fa-solid fa-trophy text-amber-400"></i> <span id="standings-league-title">Klasemen Premier League</span>
+                    </h2>
+                    <span class="text-[10px] font-bold text-superteal-400 bg-superteal-500/10 px-2 py-0.5 rounded-md">Jadwal Kompetisi</span>
+                </div>
+
+                <div class="flex-1 bg-slate-950/80 border border-slate-800 rounded-2xl overflow-y-auto">
+                    <table class="w-full text-xs text-left">
+                        <thead class="text-[9px] font-bold uppercase text-slate-400 bg-slate-900 sticky top-0 border-b border-slate-800">
+                            <tr>
+                                <th class="py-2 px-2 text-center">Pos</th>
+                                <th class="py-2 px-2">Klub</th>
+                                <th class="py-2 px-1 text-center">M</th>
+                                <th class="py-2 px-1 text-center">W</th>
+                                <th class="py-2 px-1 text-center">D</th>
+                                <th class="py-2 px-1 text-center">L</th>
+                                <th class="py-2 px-1 text-center">SG</th>
+                                <th class="py-2 px-2 text-center font-black text-superteal-400">Pts</th>
+                            </tr>
+                        </thead>
+                        <tbody id="standings-table-body" class="divide-y divide-slate-800/60 font-medium text-[11px]"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- 5. FIXTURES & RESULTS SCREEN -->
+            <section id="screen-fixtures" class="hidden flex-1 flex flex-col space-y-2 overflow-hidden">
+                <div class="bg-slate-950 border border-slate-800 rounded-2xl p-2.5 flex items-center justify-between flex-shrink-0">
+                    <h2 class="font-extrabold text-xs text-white">Jadwal & Hasil Pertandingan</h2>
+                    <select id="select-gw-view" onchange="renderFixturesPage(parseInt(this.value))" class="bg-slate-900 border border-slate-700 text-xs font-bold text-superteal-400 rounded-lg px-2 py-1 focus:outline-none"></select>
+                </div>
+
+                <div id="fixtures-list-container" class="flex-1 overflow-y-auto space-y-2 pr-0.5"></div>
+            </section>
+
+            <!-- 6. TRANSFER MARKET SCREEN -->
+            <section id="screen-transfers" class="hidden flex-1 flex flex-col space-y-2 overflow-hidden">
+                <div class="bg-slate-950 border border-slate-800 rounded-2xl p-2.5 flex items-center justify-between gap-2 flex-shrink-0">
+                    <div class="flex items-center gap-2">
+                        <button id="transfer-mode-buy-btn" onclick="setTransferMode('buy')" class="px-3 py-1 rounded-lg text-xs font-bold bg-superteal-500 text-slate-950">
+                            Beli Pemain
+                        </button>
+                        <button id="transfer-mode-sell-btn" onclick="setTransferMode('sell')" class="px-3 py-1 rounded-lg text-xs font-bold text-slate-400 hover:bg-slate-800">
+                            Jual Pemain
+                        </button>
+                    </div>
+
+                    <div class="text-right">
+                        <span class="text-[9px] uppercase font-bold text-slate-400 block">Sisa Budget</span>
+                        <span id="transfer-budget-display" class="text-xs font-black text-amber-400">£120M</span>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-2 bg-slate-950 p-1.5 rounded-2xl border border-slate-800 flex-shrink-0">
+                    <input type="text" id="transfer-search" oninput="renderTransferMarket()" placeholder="Cari pemain..." class="bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none flex-1">
+                    <select id="transfer-pos-filter" onchange="renderTransferMarket()" class="bg-slate-900 border border-slate-700 text-xs text-slate-300 rounded-lg px-2 py-1 focus:outline-none">
+                        <option value="ALL">Semua</option>
+                        <option value="F">F</option>
+                        <option value="M">M</option>
+                        <option value="FB">FB</option>
+                        <option value="CB">CB</option>
+                        <option value="GK">GK</option>
+                    </select>
+                </div>
+
+                <div id="transfer-cards-grid" class="flex-1 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 pr-0.5"></div>
+            </section>
+
+        </main>
+
+        <!-- FORMATION SELECTION MODAL -->
+        <div id="modal-formation" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 max-w-xs w-full space-y-3">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                    <h3 class="font-extrabold text-sm text-white">Pilih Taktik Formasi</h3>
+                    <button onclick="closeFormationModal()" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="setFormation('3-3-4')" class="p-2 bg-slate-800 hover:bg-superteal-600 rounded-xl font-bold text-xs text-white transition">3-3-4</button>
+                    <button onclick="setFormation('4-3-3')" class="p-2 bg-slate-800 hover:bg-superteal-600 rounded-xl font-bold text-xs text-white transition">4-3-3</button>
+                    <button onclick="setFormation('4-2-3-1')" class="p-2 bg-slate-800 hover:bg-superteal-600 rounded-xl font-bold text-xs text-white transition">4-2-3-1</button>
+                    <button onclick="setFormation('4-4-2')" class="p-2 bg-slate-800 hover:bg-superteal-600 rounded-xl font-bold text-xs text-white transition">4-4-2</button>
+                    <button onclick="setFormation('3-5-2')" class="p-2 bg-slate-800 hover:bg-superteal-600 rounded-xl font-bold text-xs text-white transition">3-5-2</button>
+                    <button onclick="setFormation('5-3-2')" class="p-2 bg-slate-800 hover:bg-superteal-600 rounded-xl font-bold text-xs text-white transition">5-3-2</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MOBILE BOTTOM NAVIGATION BAR -->
+        <nav id="bottom-nav" class="hidden bg-slate-950 border-t border-slate-800 px-2 py-1.5 flex-shrink-0 z-30">
+            <div class="grid grid-cols-5 gap-1 text-center">
+                <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-item flex flex-col items-center justify-center py-1 text-superteal-400 font-bold transition">
+                    <i class="fa-solid fa-chart-pie text-base"></i>
+                    <span class="text-[9px] mt-0.5">Home</span>
+                </button>
+                <button onclick="switchTab('squad')" id="nav-squad" class="nav-item flex flex-col items-center justify-center py-1 text-slate-400 font-medium hover:text-slate-200 transition">
+                    <i class="fa-solid fa-clipboard-user text-base"></i>
+                    <span class="text-[9px] mt-0.5">Taktik</span>
+                </button>
+                <button onclick="switchTab('match')" id="nav-match" class="nav-item flex flex-col items-center justify-center py-1 text-slate-400 font-medium hover:text-slate-200 transition">
+                    <i class="fa-solid fa-gamepad text-base"></i>
+                    <span class="text-[9px] mt-0.5">Match</span>
+                </button>
+                <button onclick="switchTab('standings')" id="nav-standings" class="nav-item flex flex-col items-center justify-center py-1 text-slate-400 font-medium hover:text-slate-200 transition">
+                    <i class="fa-solid fa-trophy text-base"></i>
+                    <span class="text-[9px] mt-0.5">Klasemen</span>
+                </button>
+                <button onclick="switchTab('transfers')" id="nav-transfers" class="nav-item flex flex-col items-center justify-center py-1 text-slate-400 font-medium hover:text-slate-200 transition">
+                    <i class="fa-solid fa-arrow-right-arrow-left text-base"></i>
+                    <span class="text-[9px] mt-0.5">Transfer</span>
+                </button>
+            </div>
+        </nav>
+    </div>
+
+    <!-- 1. Global Helpers & League Config -->
+    <script src="js/helpers.js"></script>
+    <script src="js/league.js"></script>
+
+    <!-- 2. Premier League Teams -->
+    <script src="tim/premier_league/Arsenal.js"></script>
+    <script src="tim/premier_league/Chelsea.js"></script>
+    <script src="tim/premier_league/ManchesterCity.js"></script>
+
+    <!-- 3. La Liga Teams -->
+    <script src="tim/la_liga/Barcelona.js"></script>
+    <script src="tim/la_liga/RealMadrid.js"></script>
+
+    <!-- 4. Central Data Aggregator, Match Engine & App Logic -->
+    <script src="js/data.js"></script>
+    <script src="js/matchEngine.js"></script>
+    <script src="js/app.js"></script>
 </body>
 </html>
