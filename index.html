@@ -249,94 +249,144 @@
 
             <!-- 2. SQUAD & TACTICS SCREEN -->
             <section id="screen-squad" class="hidden flex-1 flex flex-col justify-between space-y-2 overflow-hidden select-none">
-                <div class="grid grid-cols-3 gap-2 flex-shrink-0">
-                    <div onclick="cycleCaptain()" class="bg-white text-slate-900 rounded-2xl p-2 flex items-center space-x-2 shadow cursor-pointer border border-slate-200 hover:bg-slate-50 transition">
-                        <div class="w-7 h-7 rounded-full bg-slate-100 border border-slate-300 flex items-center justify-center font-extrabold text-slate-700 text-xs shadow-inner flex-shrink-0">C</div>
-                        <div class="truncate">
-                            <span class="text-[9px] font-bold text-slate-400 uppercase block">Kapten</span>
-                            <span id="tactic-captain-name" class="text-xs font-black text-superteal-700 truncate block">Paul Farman</span>
-                        </div>
-                    </div>
-
-                    <div onclick="cyclePressingStyle()" class="bg-white text-slate-900 rounded-2xl p-2 flex items-center space-x-2 shadow cursor-pointer border border-slate-200 hover:bg-slate-50 transition">
-                        <div class="w-7 h-7 rounded-full bg-slate-100 border border-slate-300 flex items-center justify-center text-slate-700 text-xs shadow-inner flex-shrink-0">
-                            <i class="fa-solid fa-person-running"></i>
-                        </div>
-                        <div class="truncate">
-                            <span class="text-[9px] font-bold text-slate-400 uppercase block">Tekanan</span>
-                            <span id="tactic-pressing-label" class="text-xs font-black text-superteal-700 truncate block">Soft</span>
-                        </div>
-                    </div>
-
-                    <div onclick="openFormationModal()" class="bg-white text-slate-900 rounded-2xl p-2 flex items-center space-x-2 shadow cursor-pointer border border-slate-200 hover:bg-slate-50 transition">
-                        <div class="w-7 h-7 rounded-full bg-slate-100 border border-slate-300 flex items-center justify-center text-slate-700 text-xs shadow-inner flex-shrink-0">
-                            <i class="fa-solid fa-chess-board"></i>
-                        </div>
-                        <div class="truncate">
-                            <span class="text-[9px] font-bold text-slate-400 uppercase block">Taktik</span>
-                            <span id="tactic-formation-label" class="text-xs font-black text-superteal-700 truncate block">3-3-4</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="flex items-center space-x-2 flex-shrink-0">
-                    <button onclick="showToast('Sistem Layer Aktif', 'info')" class="w-9 h-9 rounded-xl bg-superteal-700 hover:bg-superteal-600 text-slate-100 flex items-center justify-center text-sm shadow">
-                        <i class="fa-solid fa-layer-group"></i>
+                <!-- Sub Navigation Bar inside Squad Screen -->
+                <div class="flex items-center gap-1 bg-slate-950 p-1 rounded-2xl border border-slate-800 flex-shrink-0">
+                    <button id="squad-subtab-tactics" onclick="setSquadSubTab('tactics')" class="flex-1 py-1.5 text-center text-xs font-bold rounded-xl bg-superteal-500 text-slate-950 transition">
+                        Formasi & Taktik
                     </button>
-                    <button onclick="manualSaveGame()" class="w-9 h-9 rounded-xl bg-superteal-700 hover:bg-superteal-600 text-slate-100 flex items-center justify-center text-sm shadow" title="Simpan Taktik">
-                        <i class="fa-solid fa-floppy-disk"></i>
-                    </button>
-                    <button onclick="cycleMovementStyle()" class="flex-1 py-1.5 px-3 rounded-xl bg-superteal-700 hover:bg-superteal-600 text-slate-100 font-bold text-xs flex items-center justify-center gap-1.5 shadow">
-                        <i class="fa-solid fa-child"></i>
-                        <span id="btn-movement-label">Pergerakan</span>
-                    </button>
-                    <button onclick="cyclePassingStyle()" class="flex-1 py-1.5 px-3 rounded-xl bg-slate-400/80 hover:bg-slate-400 text-slate-900 font-bold text-xs flex items-center justify-center gap-1.5 shadow">
-                        <i class="fa-solid fa-arrow-right-arrow-left"></i>
-                        <span id="btn-passing-label">Umpan</span>
+                    <button id="squad-subtab-roster" onclick="setSquadSubTab('roster')" class="flex-1 py-1.5 text-center text-xs font-bold rounded-xl text-slate-400 hover:text-white transition">
+                        Semua Pemain Klub
                     </button>
                 </div>
 
-                <div class="flex-1 pitch-surface rounded-2xl p-2 flex flex-col justify-between overflow-hidden relative shadow-inner min-h-[220px]">
-                    <div class="pitch-lines"></div>
-                    <div class="pitch-center-line"></div>
-                    <div class="pitch-center-circle"></div>
-                    <div class="pitch-box-left"></div>
-                    <div class="pitch-box-right"></div>
-
-                    <div id="tactics-pitch-container" class="relative w-full h-full flex items-center justify-between z-10 px-1"></div>
-                </div>
-
-                <div class="bg-slate-950/90 border border-slate-800 rounded-2xl overflow-hidden flex flex-col flex-shrink-0">
-                    <div class="bg-superteal-700/80 text-white font-extrabold text-xs py-1 px-3 text-center tracking-wider shadow">
-                        Cadangan
-                    </div>
-                    <div id="bench-horizontal-list" class="p-2 flex items-center space-x-3 overflow-x-auto min-h-[90px]"></div>
-                </div>
-
-                <div class="flex items-center justify-between gap-2 pt-1 flex-shrink-0">
-                    <div class="flex items-center space-x-2 bg-slate-950/80 border border-slate-800 p-2 rounded-2xl flex-1 truncate">
-                        <div class="text-[9px] font-bold text-slate-400 flex flex-col items-center border-r border-slate-800 pr-2 flex-shrink-0">
-                            <span class="text-superteal-400">18°</span>
-                            <i class="fa-solid fa-cloud-sun text-slate-400"></i>
+                <!-- SUB TAB 1: TACTICS VIEW -->
+                <div id="squad-view-tactics" class="flex-1 flex flex-col justify-between space-y-2 overflow-hidden">
+                    <div class="grid grid-cols-3 gap-2 flex-shrink-0">
+                        <div onclick="cycleCaptain()" class="bg-white text-slate-900 rounded-2xl p-2 flex items-center space-x-2 shadow cursor-pointer border border-slate-200 hover:bg-slate-50 transition">
+                            <div class="w-7 h-7 rounded-full bg-slate-100 border border-slate-300 flex items-center justify-center font-extrabold text-slate-700 text-xs shadow-inner flex-shrink-0">C</div>
+                            <div class="truncate">
+                                <span class="text-[9px] font-bold text-slate-400 uppercase block">Kapten</span>
+                                <span id="tactic-captain-name" class="text-xs font-black text-superteal-700 truncate block">Paul Farman</span>
+                            </div>
                         </div>
-                        
-                        <div class="flex items-center space-x-2 truncate">
-                            <div class="text-center">
-                                <span id="tactics-match-gw" class="text-[9px] font-extrabold text-slate-400 uppercase block">Pekan 1</span>
-                                <div class="flex items-center space-x-1.5 mt-0.5">
-                                    <span id="tactics-home-ovr" class="text-[10px] font-bold text-slate-300">85</span>
-                                    <div id="tactics-home-badge-wrap" class="flex-shrink-0"></div>
-                                    <div id="tactics-away-badge-wrap" class="flex-shrink-0"></div>
-                                    <span id="tactics-away-ovr" class="text-[10px] font-bold text-slate-300">83</span>
-                                </div>
+
+                        <div onclick="cyclePressingStyle()" class="bg-white text-slate-900 rounded-2xl p-2 flex items-center space-x-2 shadow cursor-pointer border border-slate-200 hover:bg-slate-50 transition">
+                            <div class="w-7 h-7 rounded-full bg-slate-100 border border-slate-300 flex items-center justify-center text-slate-700 text-xs shadow-inner flex-shrink-0">
+                                <i class="fa-solid fa-person-running"></i>
+                            </div>
+                            <div class="truncate">
+                                <span class="text-[9px] font-bold text-slate-400 uppercase block">Tekanan</span>
+                                <span id="tactic-pressing-label" class="text-xs font-black text-superteal-700 truncate block">Soft</span>
+                            </div>
+                        </div>
+
+                        <div onclick="openFormationModal()" class="bg-white text-slate-900 rounded-2xl p-2 flex items-center space-x-2 shadow cursor-pointer border border-slate-200 hover:bg-slate-50 transition">
+                            <div class="w-7 h-7 rounded-full bg-slate-100 border border-slate-300 flex items-center justify-center text-slate-700 text-xs shadow-inner flex-shrink-0">
+                                <i class="fa-solid fa-chess-board"></i>
+                            </div>
+                            <div class="truncate">
+                                <span class="text-[9px] font-bold text-slate-400 uppercase block">Taktik</span>
+                                <span id="tactic-formation-label" class="text-xs font-black text-superteal-700 truncate block">3-3-4</span>
                             </div>
                         </div>
                     </div>
 
-                    <button onclick="goToMatchSimulation()" class="py-3 px-5 bg-gradient-to-r from-superteal-400 to-superteal-500 hover:from-superteal-300 hover:to-superteal-400 text-slate-950 font-black rounded-2xl shadow-lg flex items-center justify-center gap-2 text-sm sm:text-base flex-shrink-0 transition active:scale-95">
-                        <i class="fa-solid fa-futbol text-base"></i>
-                        <span>Main pertandingan</span>
-                    </button>
+                    <div class="flex items-center space-x-2 flex-shrink-0">
+                        <button onclick="showToast('Sistem Layer Aktif', 'info')" class="w-9 h-9 rounded-xl bg-superteal-700 hover:bg-superteal-600 text-slate-100 flex items-center justify-center text-sm shadow">
+                            <i class="fa-solid fa-layer-group"></i>
+                        </button>
+                        <button onclick="manualSaveGame()" class="w-9 h-9 rounded-xl bg-superteal-700 hover:bg-superteal-600 text-slate-100 flex items-center justify-center text-sm shadow" title="Simpan Taktik">
+                            <i class="fa-solid fa-floppy-disk"></i>
+                        </button>
+                        <button onclick="cycleMovementStyle()" class="flex-1 py-1.5 px-3 rounded-xl bg-superteal-700 hover:bg-superteal-600 text-slate-100 font-bold text-xs flex items-center justify-center gap-1.5 shadow">
+                            <i class="fa-solid fa-child"></i>
+                            <span id="btn-movement-label">Pergerakan</span>
+                        </button>
+                        <button onclick="cyclePassingStyle()" class="flex-1 py-1.5 px-3 rounded-xl bg-slate-400/80 hover:bg-slate-400 text-slate-900 font-bold text-xs flex items-center justify-center gap-1.5 shadow">
+                            <i class="fa-solid fa-arrow-right-arrow-left"></i>
+                            <span id="btn-passing-label">Umpan</span>
+                        </button>
+                    </div>
+
+                    <div class="flex-1 pitch-surface rounded-2xl p-2 flex flex-col justify-between overflow-hidden relative shadow-inner min-h-[220px]">
+                        <div class="pitch-lines"></div>
+                        <div class="pitch-center-line"></div>
+                        <div class="pitch-center-circle"></div>
+                        <div class="pitch-box-left"></div>
+                        <div class="pitch-box-right"></div>
+
+                        <div id="tactics-pitch-container" class="relative w-full h-full flex items-center justify-between z-10 px-1"></div>
+                    </div>
+
+                    <div class="bg-slate-950/90 border border-slate-800 rounded-2xl overflow-hidden flex flex-col flex-shrink-0">
+                        <div class="bg-superteal-700/80 text-white font-extrabold text-xs py-1 px-3 text-center tracking-wider shadow">
+                            Cadangan
+                        </div>
+                        <div id="bench-horizontal-list" class="p-2 flex items-center space-x-3 overflow-x-auto min-h-[90px]"></div>
+                    </div>
+
+                    <div class="flex items-center justify-between gap-2 pt-1 flex-shrink-0">
+                        <div class="flex items-center space-x-2 bg-slate-950/80 border border-slate-800 p-2 rounded-2xl flex-1 truncate">
+                            <div class="text-[9px] font-bold text-slate-400 flex flex-col items-center border-r border-slate-800 pr-2 flex-shrink-0">
+                                <span class="text-superteal-400">18°</span>
+                                <i class="fa-solid fa-cloud-sun text-slate-400"></i>
+                            </div>
+                            
+                            <div class="flex items-center space-x-2 truncate">
+                                <div class="text-center">
+                                    <span id="tactics-match-gw" class="text-[9px] font-extrabold text-slate-400 uppercase block">Pekan 1</span>
+                                    <div class="flex items-center space-x-1.5 mt-0.5">
+                                        <span id="tactics-home-ovr" class="text-[10px] font-bold text-slate-300">85</span>
+                                        <div id="tactics-home-badge-wrap" class="flex-shrink-0"></div>
+                                        <div id="tactics-away-badge-wrap" class="flex-shrink-0"></div>
+                                        <span id="tactics-away-ovr" class="text-[10px] font-bold text-slate-300">83</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button onclick="goToMatchSimulation()" class="py-3 px-5 bg-gradient-to-r from-superteal-400 to-superteal-500 hover:from-superteal-300 hover:to-superteal-400 text-slate-950 font-black rounded-2xl shadow-lg flex items-center justify-center gap-2 text-sm sm:text-base flex-shrink-0 transition active:scale-95">
+                            <i class="fa-solid fa-futbol text-base"></i>
+                            <span>Main pertandingan</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- SUB TAB 2: FULL CLUB SQUAD BY POSITION -->
+                <div id="squad-view-roster" class="hidden flex-1 flex flex-col space-y-3 overflow-y-auto pr-0.5">
+                    <p class="text-[10px] text-slate-400 italic text-center">Klik pada kartu pemain untuk melihat detail & statistik musim ini.</p>
+
+                    <!-- Penjaga Gawang (GK) -->
+                    <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-2.5 space-y-2">
+                        <h3 class="text-xs font-black text-amber-400 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-800/80 pb-1">
+                            <i class="fa-solid fa-hands"></i> Penjaga Gawang (GK)
+                        </h3>
+                        <div id="roster-gk-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2"></div>
+                    </div>
+
+                    <!-- Pemain Belakang (CB/FB) -->
+                    <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-2.5 space-y-2">
+                        <h3 class="text-xs font-black text-blue-400 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-800/80 pb-1">
+                            <i class="fa-solid fa-shield"></i> Pemain Belakang (CB / FB)
+                        </h3>
+                        <div id="roster-def-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2"></div>
+                    </div>
+
+                    <!-- Gelandang (M) -->
+                    <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-2.5 space-y-2">
+                        <h3 class="text-xs font-black text-emerald-400 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-800/80 pb-1">
+                            <i class="fa-solid fa-circle-nodes"></i> Pemain Tengah / Gelandang (M)
+                        </h3>
+                        <div id="roster-mid-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2"></div>
+                    </div>
+
+                    <!-- Penyerang (F) -->
+                    <div class="bg-slate-950/80 border border-slate-800 rounded-2xl p-2.5 space-y-2">
+                        <h3 class="text-xs font-black text-rose-400 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-800/80 pb-1">
+                            <i class="fa-solid fa-crosshairs"></i> Pemain Depan / Penyerang (F)
+                        </h3>
+                        <div id="roster-fwd-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2"></div>
+                    </div>
                 </div>
             </section>
 
@@ -473,45 +523,112 @@
                 </div>
             </section>
 
-            <!-- 4. STANDINGS SCREEN -->
+            <!-- 4. LEAGUE & STATS SCREEN (KLASEMEN, JADWAL, TOP SCORE, TOP ASSIST) -->
             <section id="screen-standings" class="hidden flex-1 flex flex-col space-y-2 overflow-hidden">
-                <div class="bg-slate-950 border border-slate-800 rounded-2xl p-2.5 flex items-center justify-between flex-shrink-0">
-                    <h2 class="font-extrabold text-xs sm:text-sm text-white flex items-center gap-1.5">
-                        <i class="fa-solid fa-trophy text-amber-400"></i> <span id="standings-league-title">Klasemen Premier League</span>
-                    </h2>
-                    <span class="text-[10px] font-bold text-superteal-400 bg-superteal-500/10 px-2 py-0.5 rounded-md">Jadwal Kompetisi</span>
+                <!-- Sub Navigation Tabs for Standings/League Section -->
+                <div class="flex items-center gap-1 bg-slate-950 p-1 rounded-2xl border border-slate-800 flex-shrink-0">
+                    <button id="league-subtab-standings" onclick="setLeagueSubTab('standings')" class="flex-1 py-1.5 text-center text-[11px] font-extrabold rounded-xl bg-superteal-500 text-slate-950 transition">
+                        Klasemen
+                    </button>
+                    <button id="league-subtab-fixtures" onclick="setLeagueSubTab('fixtures')" class="flex-1 py-1.5 text-center text-[11px] font-extrabold rounded-xl text-slate-400 hover:text-white transition">
+                        Jadwal Laga
+                    </button>
+                    <button id="league-subtab-topscorers" onclick="setLeagueSubTab('topscorers')" class="flex-1 py-1.5 text-center text-[11px] font-extrabold rounded-xl text-slate-400 hover:text-white transition">
+                        Top Skorer
+                    </button>
+                    <button id="league-subtab-topassists" onclick="setLeagueSubTab('topassists')" class="flex-1 py-1.5 text-center text-[11px] font-extrabold rounded-xl text-slate-400 hover:text-white transition">
+                        Top Assist
+                    </button>
                 </div>
 
-                <div class="flex-1 bg-slate-950/80 border border-slate-800 rounded-2xl overflow-y-auto">
-                    <table class="w-full text-xs text-left">
-                        <thead class="text-[9px] font-bold uppercase text-slate-400 bg-slate-900 sticky top-0 border-b border-slate-800">
-                            <tr>
-                                <th class="py-2 px-2 text-center">Pos</th>
-                                <th class="py-2 px-2">Klub</th>
-                                <th class="py-2 px-1 text-center">M</th>
-                                <th class="py-2 px-1 text-center">W</th>
-                                <th class="py-2 px-1 text-center">D</th>
-                                <th class="py-2 px-1 text-center">L</th>
-                                <th class="py-2 px-1 text-center">SG</th>
-                                <th class="py-2 px-2 text-center font-black text-superteal-400">Pts</th>
-                            </tr>
-                        </thead>
-                        <tbody id="standings-table-body" class="divide-y divide-slate-800/60 font-medium text-[11px]"></tbody>
-                    </table>
+                <!-- VIEW 1: KLASEMEN -->
+                <div id="league-view-standings" class="flex-1 flex flex-col space-y-2 overflow-hidden">
+                    <div class="bg-slate-950 border border-slate-800 rounded-2xl p-2.5 flex items-center justify-between flex-shrink-0">
+                        <h2 class="font-extrabold text-xs sm:text-sm text-white flex items-center gap-1.5">
+                            <i class="fa-solid fa-trophy text-amber-400"></i> <span id="standings-league-title">Klasemen Premier League</span>
+                        </h2>
+                        <span class="text-[10px] font-bold text-superteal-400 bg-superteal-500/10 px-2 py-0.5 rounded-md">Jadwal Resmi</span>
+                    </div>
+
+                    <div class="flex-1 bg-slate-950/80 border border-slate-800 rounded-2xl overflow-y-auto">
+                        <table class="w-full text-xs text-left">
+                            <thead class="text-[9px] font-bold uppercase text-slate-400 bg-slate-900 sticky top-0 border-b border-slate-800">
+                                <tr>
+                                    <th class="py-2 px-2 text-center">Pos</th>
+                                    <th class="py-2 px-2">Klub</th>
+                                    <th class="py-2 px-1 text-center">M</th>
+                                    <th class="py-2 px-1 text-center">W</th>
+                                    <th class="py-2 px-1 text-center">D</th>
+                                    <th class="py-2 px-1 text-center">L</th>
+                                    <th class="py-2 px-1 text-center">SG</th>
+                                    <th class="py-2 px-2 text-center font-black text-superteal-400">Pts</th>
+                                </tr>
+                            </thead>
+                            <tbody id="standings-table-body" class="divide-y divide-slate-800/60 font-medium text-[11px]"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- VIEW 2: JADWAL PERTANDINGAN -->
+                <div id="league-view-fixtures" class="hidden flex-1 flex flex-col space-y-2 overflow-hidden">
+                    <div class="bg-slate-950 border border-slate-800 rounded-2xl p-2.5 flex items-center justify-between flex-shrink-0">
+                        <h2 class="font-extrabold text-xs text-white">Jadwal & Hasil Pertandingan</h2>
+                        <select id="select-gw-view" onchange="renderFixturesPage(parseInt(this.value))" class="bg-slate-900 border border-slate-700 text-xs font-bold text-superteal-400 rounded-lg px-2 py-1 focus:outline-none"></select>
+                    </div>
+
+                    <div id="fixtures-list-container" class="flex-1 overflow-y-auto space-y-2 pr-0.5"></div>
+                </div>
+
+                <!-- VIEW 3: TOP SCORE -->
+                <div id="league-view-topscorers" class="hidden flex-1 flex flex-col space-y-2 overflow-hidden">
+                    <div class="bg-slate-950 border border-slate-800 rounded-2xl p-2.5 flex items-center justify-between flex-shrink-0">
+                        <h2 class="font-extrabold text-xs sm:text-sm text-white flex items-center gap-1.5">
+                            <i class="fa-solid fa-futbol text-amber-400"></i> <span>Daftar Top Skorer Liga</span>
+                        </h2>
+                        <span class="text-[10px] font-bold text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded-md">Gol Terbanyak</span>
+                    </div>
+
+                    <div class="flex-1 bg-slate-950/80 border border-slate-800 rounded-2xl overflow-y-auto">
+                        <table class="w-full text-xs text-left">
+                            <thead class="text-[9px] font-bold uppercase text-slate-400 bg-slate-900 sticky top-0 border-b border-slate-800">
+                                <tr>
+                                    <th class="py-2 px-2 text-center">#</th>
+                                    <th class="py-2 px-2">Pemain</th>
+                                    <th class="py-2 px-2">Klub</th>
+                                    <th class="py-2 px-2 text-center font-black text-amber-400">Gol</th>
+                                </tr>
+                            </thead>
+                            <tbody id="topscorers-table-body" class="divide-y divide-slate-800/60 font-medium text-[11px]"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- VIEW 4: TOP ASSIST -->
+                <div id="league-view-topassists" class="hidden flex-1 flex flex-col space-y-2 overflow-hidden">
+                    <div class="bg-slate-950 border border-slate-800 rounded-2xl p-2.5 flex items-center justify-between flex-shrink-0">
+                        <h2 class="font-extrabold text-xs sm:text-sm text-white flex items-center gap-1.5">
+                            <i class="fa-solid fa-hands-holding-circle text-superteal-400"></i> <span>Daftar Top Assist Liga</span>
+                        </h2>
+                        <span class="text-[10px] font-bold text-superteal-400 bg-superteal-500/10 px-2 py-0.5 rounded-md">Assist Terbanyak</span>
+                    </div>
+
+                    <div class="flex-1 bg-slate-950/80 border border-slate-800 rounded-2xl overflow-y-auto">
+                        <table class="w-full text-xs text-left">
+                            <thead class="text-[9px] font-bold uppercase text-slate-400 bg-slate-900 sticky top-0 border-b border-slate-800">
+                                <tr>
+                                    <th class="py-2 px-2 text-center">#</th>
+                                    <th class="py-2 px-2">Pemain</th>
+                                    <th class="py-2 px-2">Klub</th>
+                                    <th class="py-2 px-2 text-center font-black text-superteal-400">Assist</th>
+                                </tr>
+                            </thead>
+                            <tbody id="topassists-table-body" class="divide-y divide-slate-800/60 font-medium text-[11px]"></tbody>
+                        </table>
+                    </div>
                 </div>
             </section>
 
-            <!-- 5. FIXTURES & RESULTS SCREEN -->
-            <section id="screen-fixtures" class="hidden flex-1 flex flex-col space-y-2 overflow-hidden">
-                <div class="bg-slate-950 border border-slate-800 rounded-2xl p-2.5 flex items-center justify-between flex-shrink-0">
-                    <h2 class="font-extrabold text-xs text-white">Jadwal & Hasil Pertandingan</h2>
-                    <select id="select-gw-view" onchange="renderFixturesPage(parseInt(this.value))" class="bg-slate-900 border border-slate-700 text-xs font-bold text-superteal-400 rounded-lg px-2 py-1 focus:outline-none"></select>
-                </div>
-
-                <div id="fixtures-list-container" class="flex-1 overflow-y-auto space-y-2 pr-0.5"></div>
-            </section>
-
-            <!-- 6. TRANSFER MARKET SCREEN -->
+            <!-- 5. TRANSFER MARKET SCREEN -->
             <section id="screen-transfers" class="hidden flex-1 flex flex-col space-y-2 overflow-hidden">
                 <div class="bg-slate-950 border border-slate-800 rounded-2xl p-2.5 flex items-center justify-between gap-2 flex-shrink-0">
                     <div class="flex items-center gap-2">
@@ -560,6 +677,60 @@
                     <button onclick="setFormation('4-4-2')" class="p-2 bg-slate-800 hover:bg-superteal-600 rounded-xl font-bold text-xs text-white transition">4-4-2</button>
                     <button onclick="setFormation('3-5-2')" class="p-2 bg-slate-800 hover:bg-superteal-600 rounded-xl font-bold text-xs text-white transition">3-5-2</button>
                     <button onclick="setFormation('5-3-2')" class="p-2 bg-slate-800 hover:bg-superteal-600 rounded-xl font-bold text-xs text-white transition">5-3-2</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PLAYER DETAIL MODAL -->
+        <div id="modal-player-detail" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <div class="bg-slate-900 border border-slate-800 rounded-3xl p-4 max-w-xs w-full space-y-3 shadow-2xl relative">
+                <button onclick="closePlayerDetailModal()" class="absolute top-3 right-3 text-slate-400 hover:text-white p-1">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+
+                <div class="text-center space-y-2 pt-1">
+                    <div class="relative inline-block">
+                        <img id="detail-player-img" src="" alt="Player" class="w-16 h-16 rounded-full border-2 border-superteal-500 bg-slate-950 object-cover mx-auto shadow-lg">
+                        <span id="detail-player-ovr" class="absolute -bottom-1 -right-1 bg-amber-500 text-slate-950 font-black text-xs px-2 py-0.5 rounded-full border border-slate-900">85</span>
+                    </div>
+
+                    <div>
+                        <h3 id="detail-player-name" class="font-black text-base text-white">Nama Pemain</h3>
+                        <p id="detail-player-sub" class="text-xs text-slate-400">Klub • Posisi</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 text-xs bg-slate-950 border border-slate-800 p-2.5 rounded-2xl">
+                    <div class="space-y-0.5">
+                        <span class="text-[9px] text-slate-500 uppercase font-bold">Umur</span>
+                        <p id="detail-player-age" class="font-extrabold text-slate-200">24 Tahun</p>
+                    </div>
+                    <div class="space-y-0.5">
+                        <span class="text-[9px] text-slate-500 uppercase font-bold">Kaki Utama</span>
+                        <p id="detail-player-foot" class="font-extrabold text-slate-200">R</p>
+                    </div>
+                    <div class="space-y-0.5">
+                        <span class="text-[9px] text-slate-500 uppercase font-bold">Posisi</span>
+                        <p id="detail-player-pos" class="font-extrabold text-superteal-400">F</p>
+                    </div>
+                    <div class="space-y-0.5">
+                        <span class="text-[9px] text-slate-500 uppercase font-bold">Nilai Pasar</span>
+                        <p id="detail-player-val" class="font-extrabold text-amber-400">£55M</p>
+                    </div>
+                </div>
+
+                <div class="bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border border-superteal-500/30 p-3 rounded-2xl space-y-1.5 text-center">
+                    <span class="text-[9px] font-black uppercase text-superteal-400 tracking-wider block">Statistik Musim Ini</span>
+                    <div class="grid grid-cols-2 gap-2 pt-1">
+                        <div class="bg-slate-900/80 p-2 rounded-xl border border-slate-800">
+                            <span class="text-[9px] font-bold text-slate-400 uppercase block">⚽ Gol</span>
+                            <span id="detail-player-goals" class="text-base font-black text-amber-400">0</span>
+                        </div>
+                        <div class="bg-slate-900/80 p-2 rounded-xl border border-slate-800">
+                            <span class="text-[9px] font-bold text-slate-400 uppercase block">🅰️ Assist</span>
+                            <span id="detail-player-assists" class="text-base font-black text-superteal-400">0</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -621,7 +792,7 @@
                 </button>
                 <button onclick="switchTab('squad')" id="nav-squad" class="nav-item flex flex-col items-center justify-center py-1 text-slate-400 font-medium hover:text-slate-200 transition">
                     <i class="fa-solid fa-clipboard-user text-base"></i>
-                    <span class="text-[9px] mt-0.5">Taktik</span>
+                    <span class="text-[9px] mt-0.5">Skuad</span>
                 </button>
                 <button onclick="switchTab('match')" id="nav-match" class="nav-item flex flex-col items-center justify-center py-1 text-slate-400 font-medium hover:text-slate-200 transition">
                     <i class="fa-solid fa-gamepad text-base"></i>
@@ -629,7 +800,7 @@
                 </button>
                 <button onclick="switchTab('standings')" id="nav-standings" class="nav-item flex flex-col items-center justify-center py-1 text-slate-400 font-medium hover:text-slate-200 transition">
                     <i class="fa-solid fa-trophy text-base"></i>
-                    <span class="text-[9px] mt-0.5">Klasemen</span>
+                    <span class="text-[9px] mt-0.5">Liga</span>
                 </button>
                 <button onclick="switchTab('transfers')" id="nav-transfers" class="nav-item flex flex-col items-center justify-center py-1 text-slate-400 font-medium hover:text-slate-200 transition">
                     <i class="fa-solid fa-arrow-right-arrow-left text-base"></i>
