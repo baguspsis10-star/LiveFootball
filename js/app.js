@@ -1,5 +1,5 @@
 /* ==========================================================================
-   MAIN GAME CONTROLLER & UI HANDLERS (With Save/Load System & Touch Fix)
+   MAIN GAME CONTROLLER & UI HANDLERS
    ========================================================================== */
 let gameState = {
     managerName: "Paul Farman",
@@ -80,23 +80,80 @@ function resetGameSave() {
     }
 }
 
+/* ==========================================================================
+   TITLE MENU & NAVIGATION FLOW
+   ========================================================================== */
+
 window.onload = function() {
     setupTouchDragGhostListeners();
+    showTitleMenu();
+};
+
+function showTitleMenu() {
+    // Sembunyikan header & nav bottom
+    document.getElementById('header').classList.add('hidden');
+    document.getElementById('bottom-nav').classList.add('hidden');
     
-    // Cek apakah ada data save tersimpan
+    // Sembunyikan seluruh layar utama
+    const screens = ['select-club', 'dashboard', 'squad', 'match', 'week-summary', 'standings', 'fixtures', 'transfers'];
+    screens.forEach(s => {
+        const el = document.getElementById(`screen-${s}`);
+        if (el) el.classList.add('hidden');
+    });
+
+    document.getElementById('screen-title').classList.remove('hidden');
+
+    // Tampilkan / sembunyikan tombol "Lanjutkan Game"
+    const hasSave = localStorage.getItem(SAVE_KEY) !== null;
+    const btnContinue = document.getElementById('btn-continue-game');
+    if (btnContinue) {
+        if (hasSave) {
+            btnContinue.classList.remove('hidden');
+        } else {
+            btnContinue.classList.add('hidden');
+        }
+    }
+}
+
+function continueSavedGame() {
     if (loadSavedGame()) {
+        document.getElementById('screen-title').classList.add('hidden');
         document.getElementById('header').classList.remove('hidden');
         document.getElementById('bottom-nav').classList.remove('hidden');
-        document.getElementById('screen-select-club').classList.add('hidden');
         document.getElementById('screen-dashboard').classList.remove('hidden');
 
         updateHeaderUI();
         renderDashboard();
-        showToast(`Selamat datang kembali, Manajer ${gameState.managerName}! Progres dimuat.`, 'success');
+        showToast(`Selamat datang kembali, Manajer ${gameState.managerName}!`, 'success');
     } else {
-        renderClubSelectionGrid();
+        showToast("Progres tersimpan tidak ditemukan!", "error");
     }
-};
+}
+
+function startNewGamePrompt() {
+    if (localStorage.getItem(SAVE_KEY)) {
+        if (!confirm("Memulai game baru akan menghapus data simpanan lama. Lanjutkan?")) {
+            return;
+        }
+    }
+    localStorage.removeItem(SAVE_KEY);
+
+    gameState = {
+        managerName: "Paul Farman",
+        selectedLeagueKey: "EPL",
+        userTeamId: null,
+        currentGW: 1,
+        teams: [],
+        tactics: { captainId: null, pressing: "Soft", formation: "3-3-4", movement: "Pergerakan", passing: "Umpan", startingSlots: [] },
+        fixtures: [],
+        standings: [],
+        transferMode: "buy"
+    };
+
+    document.getElementById('screen-title').classList.add('hidden');
+    document.getElementById('screen-select-club').classList.remove('hidden');
+    renderClubSelectionGrid();
+}
 
 function showToast(message, type = 'info') {
     const container = document.getElementById('toast-container');
@@ -165,6 +222,17 @@ function renderClubSelectionGrid() {
     }).join('');
 }
 
+function refreshTransferMarketList() {
+    // Memasukkan ~30% pemain lawan secara acak ke daftar transfer tiap pekannya
+    gameState.teams.forEach(team => {
+        if (team.id !== gameState.userTeamId) {
+            team.squad.forEach(player => {
+                player.isListedForTransfer = Math.random() < 0.30;
+            });
+        }
+    });
+}
+
 function selectClub(teamId) {
     const nameInput = document.getElementById('input-manager-name').value.trim();
     gameState.managerName = nameInput || "Paul Farman";
@@ -179,8 +247,9 @@ function selectClub(teamId) {
     buildStartingSlotsForFormation(gameState.tactics.formation);
     generateRoundRobinFixtures();
     initStandings();
+    refreshTransferMarketList();
 
-    autoSaveGame(); // Simpan Otomatis
+    autoSaveGame();
 
     document.getElementById('header').classList.remove('hidden');
     document.getElementById('bottom-nav').classList.remove('hidden');
@@ -281,7 +350,7 @@ function sortStandings() {
 }
 
 function switchTab(tabName) {
-    const screens = ['dashboard', 'squad', 'match', 'week-summary', 'standings', 'fixtures', 'transfers'];
+    const screens = ['title', 'select-club', 'dashboard', 'squad', 'match', 'week-summary', 'standings', 'fixtures', 'transfers'];
     screens.forEach(s => {
         const el = document.getElementById(`screen-${s}`);
         if (el) el.classList.add('hidden');
@@ -545,7 +614,7 @@ function renderBenchHorizontalList() {
     }).join('');
 }
 
-/* DRAG & DROP AND TOUCH HANDLERS WITH SMOOTH ANIMATION */
+/* DRAG & DROP AND TOUCH HANDLERS */
 let draggedPlayerId = null;
 let touchStartPlayerId = null;
 let touchGhostEl = null;
@@ -671,7 +740,6 @@ function executePlayerSwap(p1Id, p2Id) {
     autoSaveGame();
     renderSquadAndTacticsScreen();
 
-    // Animasi Swap Pop Mulus
     setTimeout(() => {
         const card1 = document.querySelector(`[data-player-id="${p1Id}"]`);
         const card2 = document.querySelector(`[data-player-id="${p2Id}"]`);
@@ -719,11 +787,50 @@ function goToWeekSummaryScreen() {
 }
 
 function finishWeekAndGoHome() {
+    if (gameState.currentGW >= gameState.fixtures.length) {
+        checkEndOfWeekAndSeason();
+        return;
+    }
+
     gameState.currentGW += 1;
+    refreshTransferMarketList();
+
     autoSaveGame();
     updateHeaderUI();
     switchTab('dashboard');
     showToast(`Pekan ke-${gameState.currentGW - 1} selesai! Selamat datang di Pekan ${gameState.currentGW}.`, 'success');
+}
+
+function checkEndOfWeekAndSeason() {
+    sortStandings();
+    const userStanding = gameState.standings.find(s => s.teamId === gameState.userTeamId);
+    const userRank = gameState.standings.findIndex(s => s.teamId === gameState.userTeamId) + 1;
+
+    const modal = document.getElementById('modal-end-season');
+    const titleEl = document.getElementById('end-season-title');
+    const descEl = document.getElementById('end-season-desc');
+    const iconWrap = document.getElementById('end-season-icon-wrap');
+
+    document.getElementById('end-season-rank').innerText = `${userRank} dari ${gameState.teams.length}`;
+    document.getElementById('end-season-pts').innerText = `${userStanding.pts} Pts`;
+
+    if (userRank === 1) {
+        titleEl.innerText = "SELAMAT! KAMU JUARA LIGA! 🏆";
+        descEl.innerText = `Luar biasa! Kamu berhasil membawa ${getUserTeam().name} menjuarai kompetisi musim ini!`;
+        iconWrap.className = "inline-flex items-center justify-center w-16 h-16 rounded-full bg-amber-500/20 text-amber-400 text-3xl border border-amber-500/40 animate-bounce";
+    } else {
+        titleEl.innerText = "Musim Selesai";
+        descEl.innerText = `Kompetisi musim ini telah selesai. Kamu mengakhiri musim di posisi ke-${userRank}.`;
+        iconWrap.className = "inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-800 text-slate-300 text-3xl border border-slate-700";
+    }
+
+    modal.classList.remove('hidden');
+}
+
+function closeEndSeasonModalAndReset() {
+    document.getElementById('modal-end-season').classList.add('hidden');
+    localStorage.removeItem(SAVE_KEY);
+    showTitleMenu();
 }
 
 function renderStandingsPage() {
@@ -835,7 +942,11 @@ function renderTransferMarket() {
     if (gameState.transferMode === 'buy') {
         gameState.teams.forEach(t => {
             if (t.id !== userTeam.id) {
-                t.squad.forEach(p => pool.push({ ...p, clubName: t.name, clubId: t.id }));
+                t.squad.forEach(p => {
+                    if (p.isListedForTransfer) {
+                        pool.push({ ...p, clubName: t.name, clubId: t.id });
+                    }
+                });
             }
         });
     } else {
@@ -850,7 +961,7 @@ function renderTransferMarket() {
     const grid = document.getElementById('transfer-cards-grid');
 
     if (pool.length === 0) {
-        grid.innerHTML = `<div class="col-span-full py-6 text-center text-xs text-slate-400">Pemain tidak ditemukan.</div>`;
+        grid.innerHTML = `<div class="col-span-full py-6 text-center text-xs text-slate-400">Tidak ada pemain yang dijual dalam daftar transfer pekan ini.</div>`;
         return;
     }
 
