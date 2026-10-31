@@ -1,5 +1,5 @@
 /* ==========================================================================
-   MAIN GAME CONTROLLER & UI HANDLERS (Multi-Save & Next Season Progression)
+   MAIN GAME CONTROLLER & UI HANDLERS (With Player Details, Top Scorer & Assist)
    ========================================================================== */
 let gameState = {
     slotId: null,
@@ -20,7 +20,9 @@ let gameState = {
     },
     fixtures: [],
     standings: [],
-    transferMode: "buy"
+    transferMode: "buy",
+    activeLeagueSubTab: "standings",
+    activeSquadSubTab: "tactics"
 };
 
 let selectedSwapPlayerId = null;
@@ -50,7 +52,7 @@ function getAllSaveMeta() {
         let raw = localStorage.getItem(SAVE_SLOTS_INDEX_KEY);
         let saves = raw ? JSON.parse(raw) : [];
 
-        // Auto-Migrasi Save Data Single Lama jika ada
+        // Auto-Migrasi Save Data Single Lama
         const legacyRaw = localStorage.getItem(LEGACY_SAVE_KEY);
         if (legacyRaw) {
             try {
@@ -149,6 +151,16 @@ function loadSavedGameFromSlot(slotId) {
                 gameState = parsed;
                 if (!gameState.seasonCount) gameState.seasonCount = 1;
                 if (!gameState.seasonLabel) gameState.seasonLabel = "2026/2027";
+                if (!gameState.activeLeagueSubTab) gameState.activeLeagueSubTab = "standings";
+                if (!gameState.activeSquadSubTab) gameState.activeSquadSubTab = "tactics";
+
+                // Pastikan properti goals dan assists terinisialisasi pada setiap pemain
+                gameState.teams.forEach(team => {
+                    team.squad.forEach(p => {
+                        if (p.goals === undefined) p.goals = 0;
+                        if (p.assists === undefined) p.assists = 0;
+                    });
+                });
 
                 closeLoadSaveModal();
 
@@ -293,7 +305,9 @@ function startNewGamePrompt() {
         tactics: { captainId: null, pressing: "Soft", formation: "3-3-4", movement: "Pergerakan", passing: "Umpan", startingSlots: [] },
         fixtures: [],
         standings: [],
-        transferMode: "buy"
+        transferMode: "buy",
+        activeLeagueSubTab: "standings",
+        activeSquadSubTab: "tactics"
     };
 
     document.getElementById('screen-title').classList.add('hidden');
@@ -386,6 +400,14 @@ function selectClub(teamId) {
     const pool = getTeamsByLeague(gameState.selectedLeagueKey);
     gameState.teams = JSON.parse(JSON.stringify(pool));
     
+    // Inisialisasi statistik pemain
+    gameState.teams.forEach(t => {
+        t.squad.forEach(p => {
+            p.goals = 0;
+            p.assists = 0;
+        });
+    });
+
     const userTeam = getUserTeam();
     gameState.tactics.captainId = userTeam.squad[0].id;
 
@@ -510,8 +532,7 @@ function switchTab(tabName) {
     if (tabName === 'dashboard') renderDashboard();
     if (tabName === 'squad') renderSquadAndTacticsScreen();
     if (tabName === 'match') prepareMatchdayView();
-    if (tabName === 'standings') renderStandingsPage();
-    if (tabName === 'fixtures') renderFixturesPage(gameState.currentGW);
+    if (tabName === 'standings') renderLeagueSection();
     if (tabName === 'transfers') renderTransferMarket();
 }
 
@@ -567,6 +588,93 @@ function renderDashboard() {
             </tr>
         `;
     }).join('');
+}
+
+/* ==========================================================================
+   SQUAD & PLAYER ROSTER SUB-TABS AND DETAIL MODAL
+   ========================================================================== */
+
+function setSquadSubTab(sub) {
+    gameState.activeSquadSubTab = sub;
+    const btnTactics = document.getElementById('squad-subtab-tactics');
+    const btnRoster = document.getElementById('squad-subtab-roster');
+    const viewTactics = document.getElementById('squad-view-tactics');
+    const viewRoster = document.getElementById('squad-view-roster');
+
+    if (sub === 'tactics') {
+        btnTactics.className = "flex-1 py-1.5 text-center text-xs font-bold rounded-xl bg-superteal-500 text-slate-950 transition";
+        btnRoster.className = "flex-1 py-1.5 text-center text-xs font-bold rounded-xl text-slate-400 hover:text-white transition";
+        viewTactics.classList.remove('hidden');
+        viewRoster.classList.add('hidden');
+        renderSquadAndTacticsScreen();
+    } else {
+        btnRoster.className = "flex-1 py-1.5 text-center text-xs font-bold rounded-xl bg-superteal-500 text-slate-950 transition";
+        btnTactics.className = "flex-1 py-1.5 text-center text-xs font-bold rounded-xl text-slate-400 hover:text-white transition";
+        viewRoster.classList.remove('hidden');
+        viewTactics.classList.add('hidden');
+        renderFullClubRoster();
+    }
+}
+
+function renderFullClubRoster() {
+    const userTeam = getUserTeam();
+    const gks = userTeam.squad.filter(p => p.pos === 'GK');
+    const defs = userTeam.squad.filter(p => p.pos === 'CB' || p.pos === 'FB');
+    const mids = userTeam.squad.filter(p => p.pos === 'M');
+    const fwds = userTeam.squad.filter(p => p.pos === 'F');
+
+    const renderCard = (p) => `
+        <div onclick="openPlayerDetailModal('${p.id}')" class="bg-slate-950 border border-slate-800 hover:border-superteal-500/60 rounded-xl p-2 cursor-pointer transition transform hover:-translate-y-0.5 flex items-center justify-between gap-2 shadow">
+            <div class="flex items-center space-x-2 truncate">
+                <img src="${p.img}" alt="${p.name}" class="w-9 h-9 rounded-full border border-slate-700 bg-slate-900 object-cover flex-shrink-0">
+                <div class="truncate">
+                    <h4 class="font-bold text-xs text-white truncate">${p.name}</h4>
+                    <p class="text-[10px] text-slate-400">${p.age} Thn • ${p.foot}</p>
+                </div>
+            </div>
+            <div class="text-right flex-shrink-0">
+                <span class="text-xs font-black text-amber-400 block">${p.ovr} OVR</span>
+                <span class="text-[9px] text-superteal-400 font-bold">⚽ ${p.goals || 0} | 🅰️ ${p.assists || 0}</span>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('roster-gk-grid').innerHTML = gks.map(renderCard).join('') || '<p class="text-xs text-slate-500 italic col-span-full">Tidak ada penjaga gawang.</p>';
+    document.getElementById('roster-def-grid').innerHTML = defs.map(renderCard).join('') || '<p class="text-xs text-slate-500 italic col-span-full">Tidak ada bek.</p>';
+    document.getElementById('roster-mid-grid').innerHTML = mids.map(renderCard).join('') || '<p class="text-xs text-slate-500 italic col-span-full">Tidak ada gelandang.</p>';
+    document.getElementById('roster-fwd-grid').innerHTML = fwds.map(renderCard).join('') || '<p class="text-xs text-slate-500 italic col-span-full">Tidak ada penyerang.</p>';
+}
+
+function openPlayerDetailModal(playerId) {
+    let targetPlayer = null;
+    let playerClubName = "";
+
+    gameState.teams.forEach(t => {
+        const found = t.squad.find(p => p.id === playerId);
+        if (found) {
+            targetPlayer = found;
+            playerClubName = t.name;
+        }
+    });
+
+    if (!targetPlayer) return;
+
+    document.getElementById('detail-player-img').src = targetPlayer.img;
+    document.getElementById('detail-player-name').innerText = targetPlayer.name;
+    document.getElementById('detail-player-sub').innerText = `${playerClubName} • ${targetPlayer.pos}`;
+    document.getElementById('detail-player-ovr').innerText = `${targetPlayer.ovr}`;
+    document.getElementById('detail-player-age').innerText = `${targetPlayer.age} Tahun`;
+    document.getElementById('detail-player-foot').innerText = targetPlayer.foot;
+    document.getElementById('detail-player-pos').innerText = targetPlayer.pos;
+    document.getElementById('detail-player-val').innerText = `£${targetPlayer.val}M`;
+    document.getElementById('detail-player-goals').innerText = `${targetPlayer.goals || 0}`;
+    document.getElementById('detail-player-assists').innerText = `${targetPlayer.assists || 0}`;
+
+    document.getElementById('modal-player-detail').classList.remove('hidden');
+}
+
+function closePlayerDetailModal() {
+    document.getElementById('modal-player-detail').classList.add('hidden');
 }
 
 function cycleCaptain() {
@@ -975,16 +1083,18 @@ function checkEndOfWeekAndSeason() {
 function startNextSeason() {
     gameState.seasonCount += 1;
     
-    // Perbarui label tahun musim (misal 2026/2027 -> 2027/2028)
+    // Perbarui label tahun musim
     const startYear = 2025 + gameState.seasonCount;
     gameState.seasonLabel = `${startYear}/${startYear + 1}`;
     
     // Reset Pekan
     gameState.currentGW = 1;
 
-    // Umur semua pemain bertambah + OVR berkembang/menurun
+    // Reset gol & assist + Umur bertambah
     gameState.teams.forEach(team => {
         team.squad.forEach(player => {
+            player.goals = 0;
+            player.assists = 0;
             player.age += 1;
             if (player.age <= 23 && Math.random() < 0.6) {
                 player.ovr = Math.min(99, player.ovr + Math.floor(Math.random() * 2) + 1);
@@ -1013,6 +1123,38 @@ function closeEndSeasonModalToMenu() {
     autoSaveGame();
     document.getElementById('modal-end-season').classList.add('hidden');
     showTitleMenu();
+}
+
+/* ==========================================================================
+   LEAGUE SECTION & SUB TABS (KLASEMEN, JADWAL, TOP SCORE, TOP ASSIST)
+   ========================================================================== */
+
+function setLeagueSubTab(sub) {
+    gameState.activeLeagueSubTab = sub;
+
+    const tabs = ['standings', 'fixtures', 'topscorers', 'topassists'];
+    tabs.forEach(t => {
+        const btn = document.getElementById(`league-subtab-${t}`);
+        const view = document.getElementById(`league-view-${t}`);
+        
+        if (t === sub) {
+            btn.className = "flex-1 py-1.5 text-center text-[11px] font-extrabold rounded-xl bg-superteal-500 text-slate-950 transition";
+            view.classList.remove('hidden');
+        } else {
+            btn.className = "flex-1 py-1.5 text-center text-[11px] font-extrabold rounded-xl text-slate-400 hover:text-white transition";
+            view.classList.add('hidden');
+        }
+    });
+
+    renderLeagueSection();
+}
+
+function renderLeagueSection() {
+    const sub = gameState.activeLeagueSubTab || 'standings';
+    if (sub === 'standings') renderStandingsPage();
+    if (sub === 'fixtures') renderFixturesPage(gameState.currentGW);
+    if (sub === 'topscorers') renderTopScorersPage();
+    if (sub === 'topassists') renderTopAssistsPage();
 }
 
 function renderStandingsPage() {
@@ -1096,6 +1238,62 @@ function renderFixturesPage(gwSelect) {
     }).join('');
 }
 
+function renderTopScorersPage() {
+    let allPlayers = [];
+    gameState.teams.forEach(t => {
+        t.squad.forEach(p => {
+            allPlayers.push({ ...p, clubName: t.name, clubObj: t });
+        });
+    });
+
+    allPlayers.sort((a, b) => (b.goals || 0) - (a.goals || 0));
+
+    const body = document.getElementById('topscorers-table-body');
+    const top10 = allPlayers.slice(0, 15);
+
+    body.innerHTML = top10.map((p, idx) => `
+        <tr onclick="openPlayerDetailModal('${p.id}')" class="hover:bg-slate-900/60 cursor-pointer text-slate-300">
+            <td class="py-2 px-2 text-center font-bold text-slate-400">${idx + 1}</td>
+            <td class="py-2 px-2 font-bold text-white flex items-center space-x-2 truncate">
+                <img src="${p.img}" alt="${p.name}" class="w-6 h-6 rounded-full border border-slate-700 bg-slate-900 object-cover flex-shrink-0">
+                <span class="truncate">${p.name}</span>
+            </td>
+            <td class="py-2 px-2 text-slate-400 truncate">${p.clubName}</td>
+            <td class="py-2 px-2 text-center font-black text-amber-400 text-sm">${p.goals || 0}</td>
+        </tr>
+    `).join('');
+}
+
+function renderTopAssistsPage() {
+    let allPlayers = [];
+    gameState.teams.forEach(t => {
+        t.squad.forEach(p => {
+            allPlayers.push({ ...p, clubName: t.name, clubObj: t });
+        });
+    });
+
+    allPlayers.sort((a, b) => (b.assists || 0) - (a.assists || 0));
+
+    const body = document.getElementById('topassists-table-body');
+    const top10 = allPlayers.slice(0, 15);
+
+    body.innerHTML = top10.map((p, idx) => `
+        <tr onclick="openPlayerDetailModal('${p.id}')" class="hover:bg-slate-900/60 cursor-pointer text-slate-300">
+            <td class="py-2 px-2 text-center font-bold text-slate-400">${idx + 1}</td>
+            <td class="py-2 px-2 font-bold text-white flex items-center space-x-2 truncate">
+                <img src="${p.img}" alt="${p.name}" class="w-6 h-6 rounded-full border border-slate-700 bg-slate-900 object-cover flex-shrink-0">
+                <span class="truncate">${p.name}</span>
+            </td>
+            <td class="py-2 px-2 text-slate-400 truncate">${p.clubName}</td>
+            <td class="py-2 px-2 text-center font-black text-superteal-400 text-sm">${p.assists || 0}</td>
+        </tr>
+    `).join('');
+}
+
+/* ==========================================================================
+   TRANSFER MARKET
+   ========================================================================== */
+
 function setTransferMode(mode) {
     gameState.transferMode = mode;
     const buyBtn = document.getElementById('transfer-mode-buy-btn');
@@ -1153,12 +1351,12 @@ function renderTransferMarket() {
 
         return `
             <div class="bg-slate-950 border border-slate-800/90 rounded-2xl p-2.5 flex flex-col justify-between space-y-2 shadow">
-                <div class="space-y-1">
-                    <div class="flex items-center justify-between">
+                <div class="space-y-1" onclick="openPlayerDetailModal('${p.id}')">
+                    <div class="flex items-center justify-between cursor-pointer">
                         <span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-superteal-500/20 text-superteal-400 border border-superteal-500/30">${p.pos}</span>
                         <span class="text-xs font-black text-amber-400">${p.ovr} OVR</span>
                     </div>
-                    <div class="flex items-center space-x-2 pt-1">
+                    <div class="flex items-center space-x-2 pt-1 cursor-pointer">
                         <img src="${p.img}" alt="${p.name}" class="w-8 h-8 rounded-full border border-slate-600 bg-slate-900 object-cover flex-shrink-0">
                         <div class="truncate">
                             <h4 class="font-bold text-xs text-white truncate">${p.name}</h4>
