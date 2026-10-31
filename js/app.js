@@ -1,5 +1,5 @@
 /* ==========================================================================
-   MAIN GAME CONTROLLER & UI HANDLERS (With Multi-Save & Next Season Progression)
+   MAIN GAME CONTROLLER & UI HANDLERS (Multi-Save & Next Season Progression)
    ========================================================================== */
 let gameState = {
     slotId: null,
@@ -43,11 +43,49 @@ let matchSimulation = {
    MULTI-SAVE DATA STORAGE SYSTEM (LOCALSTORAGE)
    ========================================================================== */
 const SAVE_SLOTS_INDEX_KEY = "football_coach_save_index_v2";
+const LEGACY_SAVE_KEY = "superkickoff_fm_savegame_v1";
 
 function getAllSaveMeta() {
     try {
-        const raw = localStorage.getItem(SAVE_SLOTS_INDEX_KEY);
-        return raw ? JSON.parse(raw) : [];
+        let raw = localStorage.getItem(SAVE_SLOTS_INDEX_KEY);
+        let saves = raw ? JSON.parse(raw) : [];
+
+        // Auto-Migrasi Save Data Single Lama jika ada
+        const legacyRaw = localStorage.getItem(LEGACY_SAVE_KEY);
+        if (legacyRaw) {
+            try {
+                const legacyState = JSON.parse(legacyRaw);
+                if (legacyState && legacyState.userTeamId && !saves.some(s => s.slotId === "legacy_slot")) {
+                    const legacySlotId = "legacy_slot";
+                    legacyState.slotId = legacySlotId;
+                    if (!legacyState.seasonCount) legacyState.seasonCount = 1;
+                    if (!legacyState.seasonLabel) legacyState.seasonLabel = "2026/2027";
+
+                    localStorage.setItem(`fc_save_${legacySlotId}`, JSON.stringify(legacyState));
+
+                    const teamObj = legacyState.teams ? legacyState.teams.find(t => t.id === legacyState.userTeamId) : null;
+                    saves.unshift({
+                        slotId: legacySlotId,
+                        managerName: legacyState.managerName || "Paul Farman",
+                        userTeamId: legacyState.userTeamId,
+                        userTeamName: teamObj ? teamObj.name : "Klub",
+                        userTeamBadge: teamObj ? teamObj.badgeUrl : "",
+                        userTeamPrimaryColor: teamObj ? teamObj.primaryColor : "#0f172a",
+                        leagueKey: legacyState.selectedLeagueKey || "EPL",
+                        seasonCount: legacyState.seasonCount || 1,
+                        seasonLabel: legacyState.seasonLabel || "2026/2027",
+                        currentGW: legacyState.currentGW || 1,
+                        totalGW: legacyState.fixtures ? legacyState.fixtures.length : 38,
+                        updatedAt: "Save Lama"
+                    });
+                    localStorage.setItem(SAVE_SLOTS_INDEX_KEY, JSON.stringify(saves));
+                }
+            } catch (err) {
+                console.error("Gagal migrasi save lama:", err);
+            }
+        }
+
+        return saves;
     } catch (e) {
         console.error("Gagal membaca indeks save:", e);
         return [];
@@ -121,7 +159,7 @@ function loadSavedGameFromSlot(slotId) {
 
                 updateHeaderUI();
                 renderDashboard();
-                showToast(`Memuat Save: ${getUserTeam().name} (${gameState.seasonLabel})`, 'success');
+                showToast(`Memuat Save: ${getUserTeam().name} (Musim ${gameState.seasonCount})`, 'success');
                 return true;
             }
         }
@@ -134,12 +172,19 @@ function loadSavedGameFromSlot(slotId) {
 
 function deleteSaveSlot(slotId, event) {
     if (event) event.stopPropagation();
-    if (confirm("Apakah Anda yakin ingin menghapus save data ini secara permanen?")) {
+    if (confirm("Apakah Anda yakin ingin menghapus save data karir ini secara permanen?")) {
         localStorage.removeItem(`fc_save_${slotId}`);
+        if (slotId === "legacy_slot") localStorage.removeItem(LEGACY_SAVE_KEY);
+
         let saves = getAllSaveMeta().filter(s => s.slotId !== slotId);
         localStorage.setItem(SAVE_SLOTS_INDEX_KEY, JSON.stringify(saves));
         renderSaveSlotsModalList();
         showToast("Save data berhasil dihapus.", "info");
+
+        if (saves.length === 0) {
+            closeLoadSaveModal();
+            showTitleMenu();
+        }
     }
 }
 
@@ -228,6 +273,7 @@ function showTitleMenu() {
     if (btnLoad) {
         if (saves.length > 0) {
             btnLoad.classList.remove('hidden');
+            btnLoad.innerHTML = `<i class="fa-solid fa-folder-open"></i><span>Pilih Save Data (${saves.length})</span>`;
         } else {
             btnLoad.classList.add('hidden');
         }
@@ -395,7 +441,7 @@ function updateHeaderUI() {
     
     document.getElementById('header-club-name').innerText = team.name;
     document.getElementById('header-budget').innerText = `${team.budget}M`;
-    document.getElementById('header-season-label').innerText = `${gameState.seasonLabel}`;
+    document.getElementById('header-season-label').innerText = `Musim ${gameState.seasonCount} (${gameState.seasonLabel})`;
     document.getElementById('header-gw').innerText = `Pekan ${gameState.currentGW}/${gameState.fixtures.length || 38}`;
 }
 
@@ -936,11 +982,10 @@ function startNextSeason() {
     // Reset Pekan
     gameState.currentGW = 1;
 
-    // Umur semua pemain bertambah + OVR dinamis
+    // Umur semua pemain bertambah + OVR berkembang/menurun
     gameState.teams.forEach(team => {
         team.squad.forEach(player => {
             player.age += 1;
-            // Pemain muda (<=23 thn) berkembang, pemain tua (>=32 thn) menurun
             if (player.age <= 23 && Math.random() < 0.6) {
                 player.ovr = Math.min(99, player.ovr + Math.floor(Math.random() * 2) + 1);
             } else if (player.age >= 32 && Math.random() < 0.5) {
@@ -954,7 +999,7 @@ function startNextSeason() {
     initStandings();
     refreshTransferMarketList();
 
-    // Sembunyikan modal
+    // Sembunyikan modal akhir musim
     document.getElementById('modal-end-season').classList.add('hidden');
 
     autoSaveGame();
