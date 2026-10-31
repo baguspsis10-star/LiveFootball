@@ -1,10 +1,13 @@
 /* ==========================================================================
-   MAIN GAME CONTROLLER & UI HANDLERS
+   MAIN GAME CONTROLLER & UI HANDLERS (With Multi-Save & Next Season Progression)
    ========================================================================== */
 let gameState = {
+    slotId: null,
     managerName: "Paul Farman",
     selectedLeagueKey: "EPL",
     userTeamId: null,
+    seasonCount: 1,
+    seasonLabel: "2026/2027",
     currentGW: 1,
     teams: [],
     tactics: {
@@ -36,15 +39,57 @@ let matchSimulation = {
     speedMs: 300
 };
 
-/* SYSTEM SAVE & LOAD LOGIC (LOCALSTORAGE) */
-const SAVE_KEY = "superkickoff_fm_savegame_v1";
+/* ==========================================================================
+   MULTI-SAVE DATA STORAGE SYSTEM (LOCALSTORAGE)
+   ========================================================================== */
+const SAVE_SLOTS_INDEX_KEY = "football_coach_save_index_v2";
+
+function getAllSaveMeta() {
+    try {
+        const raw = localStorage.getItem(SAVE_SLOTS_INDEX_KEY);
+        return raw ? JSON.parse(raw) : [];
+    } catch (e) {
+        console.error("Gagal membaca indeks save:", e);
+        return [];
+    }
+}
 
 function autoSaveGame() {
     if (!gameState.userTeamId) return;
+    if (!gameState.slotId) {
+        gameState.slotId = "slot_" + Date.now();
+    }
+
     try {
-        localStorage.setItem(SAVE_KEY, JSON.stringify(gameState));
+        localStorage.setItem(`fc_save_${gameState.slotId}`, JSON.stringify(gameState));
+
+        let saves = getAllSaveMeta();
+        const existingIdx = saves.findIndex(s => s.slotId === gameState.slotId);
+        const userTeam = getUserTeam();
+
+        const saveMeta = {
+            slotId: gameState.slotId,
+            managerName: gameState.managerName,
+            userTeamId: gameState.userTeamId,
+            userTeamName: userTeam ? userTeam.name : "Klub",
+            userTeamBadge: userTeam ? userTeam.badgeUrl : "",
+            userTeamPrimaryColor: userTeam ? userTeam.primaryColor : "#0f172a",
+            leagueKey: gameState.selectedLeagueKey,
+            seasonCount: gameState.seasonCount || 1,
+            seasonLabel: gameState.seasonLabel || "2026/2027",
+            currentGW: gameState.currentGW,
+            totalGW: gameState.fixtures ? gameState.fixtures.length : 38,
+            updatedAt: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+        };
+
+        if (existingIdx >= 0) {
+            saves[existingIdx] = saveMeta;
+        } else {
+            saves.unshift(saveMeta);
+        }
+        localStorage.setItem(SAVE_SLOTS_INDEX_KEY, JSON.stringify(saves));
     } catch (e) {
-        console.error("Gagal menyimpan otomatis:", e);
+        console.error("Gagal menyimpan game ke slot:", e);
     }
 }
 
@@ -54,34 +99,111 @@ function manualSaveGame() {
         return;
     }
     autoSaveGame();
-    showToast("Progres game berhasil disimpan!", "success");
+    showToast("Progres karir berhasil disimpan!", "success");
 }
 
-function loadSavedGame() {
+function loadSavedGameFromSlot(slotId) {
     try {
-        const savedData = localStorage.getItem(SAVE_KEY);
+        const savedData = localStorage.getItem(`fc_save_${slotId}`);
         if (savedData) {
             const parsed = JSON.parse(savedData);
             if (parsed && parsed.userTeamId && parsed.teams && parsed.teams.length > 0) {
                 gameState = parsed;
+                if (!gameState.seasonCount) gameState.seasonCount = 1;
+                if (!gameState.seasonLabel) gameState.seasonLabel = "2026/2027";
+
+                closeLoadSaveModal();
+
+                document.getElementById('screen-title').classList.add('hidden');
+                document.getElementById('header').classList.remove('hidden');
+                document.getElementById('bottom-nav').classList.remove('hidden');
+                document.getElementById('screen-dashboard').classList.remove('hidden');
+
+                updateHeaderUI();
+                renderDashboard();
+                showToast(`Memuat Save: ${getUserTeam().name} (${gameState.seasonLabel})`, 'success');
                 return true;
             }
         }
     } catch (e) {
         console.error("Gagal memuat save game:", e);
     }
+    showToast("Gagal memuat file save data!", "error");
     return false;
 }
 
-function resetGameSave() {
-    if (confirm("Apakah Anda yakin ingin mengulang dari awal? Semua progres saat ini akan dihapus.")) {
-        localStorage.removeItem(SAVE_KEY);
-        location.reload();
+function deleteSaveSlot(slotId, event) {
+    if (event) event.stopPropagation();
+    if (confirm("Apakah Anda yakin ingin menghapus save data ini secara permanen?")) {
+        localStorage.removeItem(`fc_save_${slotId}`);
+        let saves = getAllSaveMeta().filter(s => s.slotId !== slotId);
+        localStorage.setItem(SAVE_SLOTS_INDEX_KEY, JSON.stringify(saves));
+        renderSaveSlotsModalList();
+        showToast("Save data berhasil dihapus.", "info");
     }
 }
 
+function openLoadSaveModal() {
+    renderSaveSlotsModalList();
+    document.getElementById('modal-load-save').classList.remove('hidden');
+}
+
+function closeLoadSaveModal() {
+    document.getElementById('modal-load-save').classList.add('hidden');
+}
+
+function renderSaveSlotsModalList() {
+    const container = document.getElementById('save-slots-list-container');
+    const saves = getAllSaveMeta();
+
+    if (saves.length === 0) {
+        container.innerHTML = `
+            <div class="text-center py-8 space-y-2">
+                <i class="fa-solid fa-folder-open text-3xl text-slate-600"></i>
+                <p class="text-xs text-slate-400">Belum ada simpanan save data karir.</p>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = saves.map(save => {
+        const dummyTeamObj = { badgeUrl: save.userTeamBadge, primaryColor: save.userTeamPrimaryColor, short: save.userTeamName.slice(0, 3) };
+        const badgeSvg = getClubBadgeSVG(dummyTeamObj, "w-11 h-11", "text-[10px]");
+
+        return `
+            <div onclick="loadSavedGameFromSlot('${save.slotId}')" class="bg-slate-950/90 hover:bg-slate-900 border border-slate-800 hover:border-superteal-500/60 rounded-2xl p-3 cursor-pointer transition transform hover:-translate-y-0.5 flex items-center justify-between gap-3 shadow-lg group">
+                <div class="flex items-center space-x-3 truncate">
+                    <div class="flex-shrink-0">
+                        ${badgeSvg}
+                    </div>
+                    <div class="truncate">
+                        <div class="flex items-center gap-1.5">
+                            <h4 class="font-extrabold text-xs sm:text-sm text-white group-hover:text-superteal-400 transition truncate">${save.userTeamName}</h4>
+                            <span class="text-[9px] font-bold px-1.5 py-0.2 rounded bg-superteal-500/20 text-superteal-400 border border-superteal-500/30 flex-shrink-0">${save.leagueKey}</span>
+                        </div>
+                        <p class="text-[11px] font-semibold text-slate-300 mt-0.5 truncate">Manajer: ${save.managerName}</p>
+                        <p class="text-[10px] text-amber-400 font-bold flex items-center gap-1 mt-0.5">
+                            <i class="fa-solid fa-calendar-days text-[9px]"></i>
+                            <span>Musim ${save.seasonCount} (${save.seasonLabel})</span>
+                            <span class="text-slate-500">•</span>
+                            <span class="text-slate-400 font-medium">Pekan ${save.currentGW}/${save.totalGW}</span>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="flex flex-col items-end justify-between self-stretch flex-shrink-0">
+                    <button onclick="deleteSaveSlot('${save.slotId}', event)" title="Hapus Save" class="p-1.5 text-slate-500 hover:text-rose-400 hover:bg-rose-950/40 rounded-lg transition">
+                        <i class="fa-solid fa-trash-can text-xs"></i>
+                    </button>
+                    <span class="text-[8px] text-slate-500 font-medium">${save.updatedAt}</span>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
 /* ==========================================================================
-   TITLE MENU & NAVIGATION FLOW
+   TITLE MENU & APPLICATION NAVIGATION
    ========================================================================== */
 
 window.onload = function() {
@@ -90,11 +212,9 @@ window.onload = function() {
 };
 
 function showTitleMenu() {
-    // Sembunyikan header & nav bottom
     document.getElementById('header').classList.add('hidden');
     document.getElementById('bottom-nav').classList.add('hidden');
-    
-    // Sembunyikan seluruh layar utama
+
     const screens = ['select-club', 'dashboard', 'squad', 'match', 'week-summary', 'standings', 'fixtures', 'transfers'];
     screens.forEach(s => {
         const el = document.getElementById(`screen-${s}`);
@@ -103,45 +223,25 @@ function showTitleMenu() {
 
     document.getElementById('screen-title').classList.remove('hidden');
 
-    // Tampilkan / sembunyikan tombol "Lanjutkan Game"
-    const hasSave = localStorage.getItem(SAVE_KEY) !== null;
-    const btnContinue = document.getElementById('btn-continue-game');
-    if (btnContinue) {
-        if (hasSave) {
-            btnContinue.classList.remove('hidden');
+    const saves = getAllSaveMeta();
+    const btnLoad = document.getElementById('btn-open-load-saves');
+    if (btnLoad) {
+        if (saves.length > 0) {
+            btnLoad.classList.remove('hidden');
         } else {
-            btnContinue.classList.add('hidden');
+            btnLoad.classList.add('hidden');
         }
-    }
-}
-
-function continueSavedGame() {
-    if (loadSavedGame()) {
-        document.getElementById('screen-title').classList.add('hidden');
-        document.getElementById('header').classList.remove('hidden');
-        document.getElementById('bottom-nav').classList.remove('hidden');
-        document.getElementById('screen-dashboard').classList.remove('hidden');
-
-        updateHeaderUI();
-        renderDashboard();
-        showToast(`Selamat datang kembali, Manajer ${gameState.managerName}!`, 'success');
-    } else {
-        showToast("Progres tersimpan tidak ditemukan!", "error");
     }
 }
 
 function startNewGamePrompt() {
-    if (localStorage.getItem(SAVE_KEY)) {
-        if (!confirm("Memulai game baru akan menghapus data simpanan lama. Lanjutkan?")) {
-            return;
-        }
-    }
-    localStorage.removeItem(SAVE_KEY);
-
     gameState = {
+        slotId: "slot_" + Date.now(),
         managerName: "Paul Farman",
         selectedLeagueKey: "EPL",
         userTeamId: null,
+        seasonCount: 1,
+        seasonLabel: "2026/2027",
         currentGW: 1,
         teams: [],
         tactics: { captainId: null, pressing: "Soft", formation: "3-3-4", movement: "Pergerakan", passing: "Umpan", startingSlots: [] },
@@ -223,7 +323,6 @@ function renderClubSelectionGrid() {
 }
 
 function refreshTransferMarketList() {
-    // Memasukkan ~30% pemain lawan secara acak ke daftar transfer tiap pekannya
     gameState.teams.forEach(team => {
         if (team.id !== gameState.userTeamId) {
             team.squad.forEach(player => {
@@ -296,7 +395,7 @@ function updateHeaderUI() {
     
     document.getElementById('header-club-name').innerText = team.name;
     document.getElementById('header-budget').innerText = `${team.budget}M`;
-    document.getElementById('header-league-tag').innerText = gameState.selectedLeagueKey === 'EPL' ? "Premier League" : "La Liga";
+    document.getElementById('header-season-label').innerText = `${gameState.seasonLabel}`;
     document.getElementById('header-gw').innerText = `Pekan ${gameState.currentGW}/${gameState.fixtures.length || 38}`;
 }
 
@@ -374,7 +473,7 @@ function renderDashboard() {
     const userTeam = getUserTeam();
     document.getElementById('dash-welcome-title').innerText = userTeam.name;
     document.getElementById('dash-league-name-tag').innerHTML = `
-        <i class="fa-solid fa-trophy"></i> ${gameState.selectedLeagueKey === 'EPL' ? 'Premier League 2026/2027' : 'La Liga 2026/2027'}
+        <i class="fa-solid fa-trophy"></i> Musim ${gameState.seasonCount} (${gameState.seasonLabel})
     `;
 
     sortStandings();
@@ -816,20 +915,58 @@ function checkEndOfWeekAndSeason() {
 
     if (userRank === 1) {
         titleEl.innerText = "SELAMAT! KAMU JUARA LIGA! 🏆";
-        descEl.innerText = `Luar biasa! Kamu berhasil membawa ${getUserTeam().name} menjuarai kompetisi musim ini!`;
+        descEl.innerText = `Luar biasa! Kamu berhasil membawa ${getUserTeam().name} menjuarai kompetisi Musim ${gameState.seasonCount} (${gameState.seasonLabel})!`;
         iconWrap.className = "inline-flex items-center justify-center w-16 h-16 rounded-full bg-amber-500/20 text-amber-400 text-3xl border border-amber-500/40 animate-bounce";
     } else {
         titleEl.innerText = "Musim Selesai";
-        descEl.innerText = `Kompetisi musim ini telah selesai. Kamu mengakhiri musim di posisi ke-${userRank}.`;
+        descEl.innerText = `Kompetisi Musim ${gameState.seasonCount} (${gameState.seasonLabel}) telah selesai. Kamu mengakhiri musim di posisi ke-${userRank}.`;
         iconWrap.className = "inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-800 text-slate-300 text-3xl border border-slate-700";
     }
 
     modal.classList.remove('hidden');
 }
 
-function closeEndSeasonModalAndReset() {
+function startNextSeason() {
+    gameState.seasonCount += 1;
+    
+    // Perbarui label tahun musim (misal 2026/2027 -> 2027/2028)
+    const startYear = 2025 + gameState.seasonCount;
+    gameState.seasonLabel = `${startYear}/${startYear + 1}`;
+    
+    // Reset Pekan
+    gameState.currentGW = 1;
+
+    // Umur semua pemain bertambah + OVR dinamis
+    gameState.teams.forEach(team => {
+        team.squad.forEach(player => {
+            player.age += 1;
+            // Pemain muda (<=23 thn) berkembang, pemain tua (>=32 thn) menurun
+            if (player.age <= 23 && Math.random() < 0.6) {
+                player.ovr = Math.min(99, player.ovr + Math.floor(Math.random() * 2) + 1);
+            } else if (player.age >= 32 && Math.random() < 0.5) {
+                player.ovr = Math.max(50, player.ovr - Math.floor(Math.random() * 2) - 1);
+            }
+        });
+    });
+
+    // Buat ulang jadwal pertandingan & reset klasemen
+    generateRoundRobinFixtures();
+    initStandings();
+    refreshTransferMarketList();
+
+    // Sembunyikan modal
     document.getElementById('modal-end-season').classList.add('hidden');
-    localStorage.removeItem(SAVE_KEY);
+
+    autoSaveGame();
+    updateHeaderUI();
+    switchTab('dashboard');
+
+    showToast(`Musim Baru (${gameState.seasonLabel}) Dimulai! Selamat berjuang!`, 'success');
+}
+
+function closeEndSeasonModalToMenu() {
+    autoSaveGame();
+    document.getElementById('modal-end-season').classList.add('hidden');
     showTitleMenu();
 }
 
